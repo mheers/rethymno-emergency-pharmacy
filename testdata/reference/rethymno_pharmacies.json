@@ -1,0 +1,659 @@
+[
+  {
+    "name": "Αγγελάκης Παναγιώτης",
+    "address": "Ζωνιανά",
+    "phone": "2834061450",
+    "name_latin": "Angelakis Panagiotis",
+    "lat": 35.295051,
+    "lon": 24.831777,
+    "address_latin": "ZONIANA"
+  },
+  {
+    "name": "Αλεφαντινού Μαρία",
+    "address": "Ζαμπελίου 19 Εναντι κλ. Ασκληπιός",
+    "phone": "2831026115",
+    "name_latin": "Alefandinou Maria",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "ZAMPELIOU 19 ENANTI KL. ASKLIPIOS"
+  },
+  {
+    "name": "Αντωνίου Ανδρέας",
+    "address": "Σπήλι",
+    "phone": "2832022150",
+    "name_latin": "Andoniou Andreas",
+    "lat": 35.216509,
+    "lon": 24.535276,
+    "address_latin": "SPILI"
+  },
+  {
+    "name": "Ατσαλή Μαριλένα",
+    "address": "Μπαλί",
+    "phone": "2834094183",
+    "name_latin": "Atsali Marilena",
+    "lat": 35.41236,
+    "lon": 24.782711,
+    "address_latin": "MPALI"
+  },
+  {
+    "name": "Βανδώρου Άννα",
+    "address": "Λ. Κουντουριώτου 81 Ρέθυμνο",
+    "phone": "2831027264",
+    "name_latin": "Vandorou Anna",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "L. KOUNTOURIOTOU 81 RETHYMNO"
+  },
+  {
+    "name": "Βαρδιάμπασης Κων/νος",
+    "address": "Άγιος Ανδρέας",
+    "phone": "2831031887",
+    "name_latin": "Vardiabasis Kon/nos",
+    "lat": 35.317165,
+    "lon": 24.414397,
+    "address_latin": "AGIOS ANDREAS"
+  },
+  {
+    "name": "Βαρούχα - Αναγνωστάκης",
+    "address": "Δημητρακάκη 21",
+    "phone": "2831055212",
+    "name_latin": "Varoucha - Anagnostakis",
+    "lat": 35.36406,
+    "lon": 24.473294,
+    "address_latin": "DIMITRAKAKI 21"
+  },
+  {
+    "name": "Βουμβουράκη Αναστασία",
+    "address": "Τρανταλίδου 15",
+    "phone": "28310 22305",
+    "name_latin": "Voumvouraki Anastasia",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "TRANTALIDOU 15"
+  },
+  {
+    "name": "Γαλερού Νίκη",
+    "address": "Ατσιπόπουλο",
+    "phone": "2831042111",
+    "name_latin": "Galerou Niki",
+    "lat": 35.352195,
+    "lon": 24.434728,
+    "address_latin": "ATSIPOPOULO"
+  },
+  {
+    "name": "Γεωργουλάκη Κλειώ",
+    "address": "Χατζηδάκη 25",
+    "phone": "2831025740",
+    "name_latin": "Georgoulaki Kleio",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "CHATZIDAKI 25"
+  },
+  {
+    "name": "Γουμενάκη Κωνσταντίνα",
+    "address": "Πλακιάς",
+    "phone": "2832032336",
+    "name_latin": "Goumenaki Konstandina",
+    "lat": 35.190743,
+    "lon": 24.393859,
+    "address_latin": "PLAKIAS"
+  },
+  {
+    "name": "Γύπαρη Ευδοξία",
+    "address": "Χορτάτζη 38",
+    "phone": "28310 26453",
+    "name_latin": "Gypari Evdoxia",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "CHORTATZI 38"
+  },
+  {
+    "name": "Δαμβακεράκης",
+    "address": "Λεωφ. Εμμανουήλ Παχλά 33, Ρέθυμνο 741 00",
+    "phone": "2831054706",
+    "name_latin": "Damvakerakis",
+    "lat": 35.365933,
+    "lon": 24.499925,
+    "address_latin": "LEOF. EMMANOUIL PACHLA 33, RETHYMNO 741 00"
+  },
+  {
+    "name": "Δανδουλάκη Σταυρούλα",
+    "address": "Λ. Κουντουριώτου 62",
+    "phone": "2831025888",
+    "name_latin": "Dandoulaki Stavroula",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "L. KOUNTOURIOTOU 62"
+  },
+  {
+    "name": "Δασκαλάκη Αικατερίνη",
+    "address": "Γ. Κουρμούλη 3",
+    "phone": "28310 22441",
+    "name_latin": "Daskalaki Aikaterini",
+    "lat": 35.360428,
+    "lon": 24.474393,
+    "address_latin": "G. KOURMOULI 3"
+  },
+  {
+    "name": "Δαφνομήλη Γεωργία",
+    "address": "Δημοκρατίας 6",
+    "phone": "28310 56850",
+    "name_latin": "Dafnomili Georgia",
+    "lat": 35.362448,
+    "lon": 24.478217,
+    "address_latin": "DIMOKRATIAS 6"
+  },
+  {
+    "name": "Δρακούλης Μιχαήλ",
+    "address": "Πέραμα",
+    "phone": "2834320290",
+    "name_latin": "Drakoulis Michail",
+    "lat": 35.369105,
+    "lon": 24.700266,
+    "address_latin": "PERAMA"
+  },
+  {
+    "name": "Δραμιτινού Γεωργία",
+    "address": "Χ. Δασκαλακη 5",
+    "phone": "2831023026",
+    "name_latin": "Dramitinou Georgia",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "CH. DASKALAKI 5"
+  },
+  {
+    "name": "Δρανδάκη - Λιάσκος",
+    "address": "Αρκαδίου 92, Ρέθυμνο",
+    "phone": "28310 28795",
+    "name_latin": "Drandaki - Liaskos",
+    "lat": 35.370306,
+    "lon": 24.475824,
+    "address_latin": "ARKADIOU 92, RETHYMNO"
+  },
+  {
+    "name": "Ζωγράφος Στέφανος",
+    "address": "Ηγουμένου Γαβριήλ 26",
+    "phone": "28310 27730",
+    "name_latin": "Zografos Stefanos",
+    "lat": 35.366687,
+    "lon": 24.470679,
+    "address_latin": "IGOUMENOU GAVRIIL 26"
+  },
+  {
+    "name": "Θωμαδάκη Ιωάννα",
+    "address": "Ηγουμένου Γαβριήλ 29 ΕΝΑΝΤΙ ΔΗΜΟΤΙΚΟΥ ΚΗΠΟΥ",
+    "phone": "2831028366",
+    "name_latin": "Thomadaki Ioanna",
+    "lat": 35.366687,
+    "lon": 24.470679,
+    "address_latin": "IGOUMENOU GAVRIIL 29 ENANTI DIMOTIKOU KIPOU"
+  },
+  {
+    "name": "Καββάλου Ελένη",
+    "address": "Λ. Κουντουριώτου 159",
+    "phone": "28310 21115, 2831031661",
+    "name_latin": "Kavvalou Eleni",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "L. KOUNTOURIOTOU 159"
+  },
+  {
+    "name": "Καλαφατάκη Ελένη - Γεωργία",
+    "address": "Δημητρακάκη 21",
+    "phone": "2831055212",
+    "name_latin": "Kalafataki Eleni - Georgia",
+    "lat": 35.36406,
+    "lon": 24.473294,
+    "address_latin": "DIMITRAKAKI 21"
+  },
+  {
+    "name": "Καλλέργη Αγγελική",
+    "address": "Γαράζο",
+    "phone": "2834041190",
+    "name_latin": "Kallergi Angeliki",
+    "lat": 35.343967,
+    "lon": 24.787859,
+    "address_latin": "GARAZO"
+  },
+  {
+    "name": "Καλογεράκης Ιωάννης",
+    "address": "Μοάτσου 8",
+    "phone": "28310 22187",
+    "name_latin": "Kalogerakis Ioannis",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "MOATSOU 8"
+  },
+  {
+    "name": "Καλοειδά - Βαρδιάμπαση Ελένη",
+    "address": "Δημοκρατίας 9 απέναντι από το Διαγνωστικό Κέντρο Eγκέφαλος",
+    "phone": "28310 24198",
+    "name_latin": "Kaloeida - Vardiabasi Eleni",
+    "lat": 35.362448,
+    "lon": 24.478217,
+    "address_latin": "DIMOKRATIAS 9 APENANTI APO TO DIAGNOSTIKO KENTRO EGKEFALOS"
+  },
+  {
+    "name": "Κάρταλης Νικόλαος",
+    "address": "Εθν. Αντιστάσεως & Τσουδερού 63",
+    "phone": "28310 23427",
+    "name_latin": "Kartalis Nikolaos",
+    "lat": 35.368632,
+    "lon": 24.47485,
+    "address_latin": "ETHN. ANTISTASEOS & TSOUDEROU 63"
+  },
+  {
+    "name": "Καρτσωνάκης Ματθαίος",
+    "address": "Πλακιάς Σελλίων",
+    "phone": "283231666",
+    "name_latin": "Kartsonakis Matthaios",
+    "lat": 35.190743,
+    "lon": 24.393859,
+    "address_latin": "PLAKIAS SELLION"
+  },
+  {
+    "name": "Κατσιμπράκη Καλλιόπη",
+    "address": "Μοάτσου 5",
+    "phone": "28310 22414",
+    "name_latin": "Katsibraki Kalliopi",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "MOATSOU 5"
+  },
+  {
+    "name": "Κολέλης Κωνσταντίνος",
+    "address": "Εμμ. Πορτάλιου 21",
+    "phone": "28310 50348",
+    "name_latin": "Kolelis Konstandinos",
+    "lat": 35.364753,
+    "lon": 24.488955,
+    "address_latin": "EMM. PORTALIOU 21"
+  },
+  {
+    "name": "Κουδουναράκης Λεωνίδας",
+    "address": "Μοάτσου 60",
+    "phone": "2831050640",
+    "name_latin": "Koudounarakis Leonidas",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "MOATSOU 60"
+  },
+  {
+    "name": "Κούνουπας Ανδρέας",
+    "address": "Μανιουδάκη 19",
+    "phone": "28310 22420",
+    "name_latin": "Kounoupas Andreas",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "MANIOUDAKI 19"
+  },
+  {
+    "name": "Κυμιωνή",
+    "address": "Εθν.Αντιστάσεως 26-28",
+    "phone": "2831052192",
+    "name_latin": "Kymioni",
+    "lat": 35.368632,
+    "lon": 24.47485,
+    "address_latin": "ETHN.ANTISTASEOS 26-28"
+  },
+  {
+    "name": "Κυριακάκης Κυριάκος",
+    "address": "Σταυρωμένος",
+    "phone": "28310 71353",
+    "name_latin": "Kyriakakis Kyriakos",
+    "lat": 35.347775,
+    "lon": 24.679178,
+    "address_latin": "STAVROMENOS"
+  },
+  {
+    "name": "Μαγγανιώτης Σταμάτης",
+    "address": "Αγγ. Σικελιανού 7 Πλατεία Αγ. Γεωργίου",
+    "phone": "28310 27828",
+    "name_latin": "Manganiotis Stamatis",
+    "lat": 35.365122,
+    "lon": 24.48755,
+    "address_latin": "ANG. SIKELIANOU 7 PLATEIA AG. GEORGIOU"
+  },
+  {
+    "name": "Μαρακάκης Ιωάννης",
+    "address": "Πρινές",
+    "phone": "2831031262",
+    "name_latin": "Marakakis Ioannis",
+    "lat": 35.34487,
+    "lon": 24.425284,
+    "address_latin": "PRINES"
+  },
+  {
+    "name": "Μαστοράκη - Κεραμιανάκη",
+    "address": "Λ. Πορτάλιου 20",
+    "phone": "28310 51113, 28310 55649",
+    "name_latin": "Mastoraki - Keramianaki",
+    "lat": 35.364753,
+    "lon": 24.488955,
+    "address_latin": "L. PORTALIOU 20"
+  },
+  {
+    "name": "Μερωνιανάκη Στυλιανή",
+    "address": "Φουρφουράς",
+    "phone": "2833041050",
+    "name_latin": "Meronianaki Styliani",
+    "lat": 35.211804,
+    "lon": 24.713075,
+    "address_latin": "FOURFOURAS"
+  },
+  {
+    "name": "Μπροκαλάκη Ζαχαρένια",
+    "address": "Κουμουνδούρου 2",
+    "phone": "28310 25123",
+    "name_latin": "Brokalaki Zacharenia",
+    "lat": 35.366687,
+    "lon": 24.470679,
+    "address_latin": "KOUMOUNDOUROU 2"
+  },
+  {
+    "name": "Νικολουδάκης Νικόλαος - Ευαγγελία",
+    "address": "Πλατεία Αγνώστου Στρατιώτη 31, Ρέθυμνο",
+    "phone": "28310 26052",
+    "name_latin": "Nikoloudakis Nikolaos - Evangelia",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "PLATEIA AGNOSTOU STRATIOTI 31, RETHYMNO"
+  },
+  {
+    "name": "Ξυλούρης Ιωάννης",
+    "address": "Ανώγεια",
+    "phone": "2834020331",
+    "name_latin": "Xylouris Ioannis",
+    "lat": 35.291188,
+    "lon": 24.883577,
+    "address_latin": "ANOGEIA"
+  },
+  {
+    "name": "Παγώνη Αλ. Ευγενία",
+    "address": "Μοάτσου 33 Ρέθυμνο",
+    "phone": "28310 24158",
+    "name_latin": "Pagoni Al. Evgenia",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "MOATSOU 33 RETHYMNO"
+  },
+  {
+    "name": "Παναγάτου Φιλοθέη",
+    "address": "Οπλαρχηγού Εμμ.Παχλά 86 Πλησίον ΑΒ Βασιλόπουλου Έναντι Τροχού",
+    "phone": "28310 23344",
+    "name_latin": "Panagatou Filothei",
+    "lat": 35.366787,
+    "lon": 24.505213,
+    "address_latin": "OPLARCHIGOU EMM.PACHLA 86 PLISION AV VASILOPOULOU ENANTI TROCHOU"
+  },
+  {
+    "name": "Παντερής Γεώργιος",
+    "address": "Ανώγεια Μυλοποτάμου",
+    "phone": "2834031232",
+    "name_latin": "Panderis Georgios",
+    "lat": 35.291188,
+    "lon": 24.883577,
+    "address_latin": "ANOGEIA MYLOPOTAMOU"
+  },
+  {
+    "name": "Παπαδάκης Μιχαήλ",
+    "address": "Αδελιανός Κάμπος",
+    "phone": "28310 71431",
+    "name_latin": "Papadakis Michail",
+    "lat": 35.372269,
+    "lon": 24.543773,
+    "address_latin": "ADELIANOS KAMPOS"
+  },
+  {
+    "name": "Παπατζανή Μαρία",
+    "address": "Γερακάρη 96",
+    "phone": "2831023347",
+    "name_latin": "Papatzani Maria",
+    "lat": 35.36654,
+    "lon": 24.477091,
+    "address_latin": "GERAKARI 96"
+  },
+  {
+    "name": "Περαντωνάκη Στυλιανή",
+    "address": "Ατσιπόπουλο",
+    "phone": "2831028200",
+    "name_latin": "Perandonaki Styliani",
+    "lat": 35.352195,
+    "lon": 24.434728,
+    "address_latin": "ATSIPOPOULO"
+  },
+  {
+    "name": "Περιστεράκη Τερέζα",
+    "address": "Κουμουνδούρου 2",
+    "phone": "2831025123",
+    "name_latin": "Peristeraki Tereza",
+    "lat": 35.366687,
+    "lon": 24.470679,
+    "address_latin": "KOUMOUNDOUROU 2"
+  },
+  {
+    "name": "Πετροπούλου Αγάπη",
+    "address": "Γεράνι",
+    "phone": "28310 33200",
+    "name_latin": "Petropoulou Agapi",
+    "lat": 35.359617,
+    "lon": 24.40574,
+    "address_latin": "GERANI"
+  },
+  {
+    "name": "Πετροπούλου Αντωνία",
+    "address": "Αγία Φωτεινή",
+    "phone": "2833022777",
+    "name_latin": "Petropoulou Andonia",
+    "lat": 35.254241,
+    "lon": 24.634321,
+    "address_latin": "AGIA FOTEINI"
+  },
+  {
+    "name": "Πολιουδάκη Αδαμαντία",
+    "address": "Πέραμα",
+    "phone": "2834022701",
+    "name_latin": "Polioudaki Adamandia",
+    "lat": 35.370455,
+    "lon": 24.701577,
+    "address_latin": "PERAMA"
+  },
+  {
+    "name": "Πρινιωτάκης Ηλίας - Παναγιώτης",
+    "address": "Λ. Κουντουριώτου 81",
+    "phone": "28310 27264",
+    "name_latin": "Priniotakis Ilias - Panagiotis",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "L. KOUNTOURIOTOU 81"
+  },
+  {
+    "name": "Σαρρής Νικόλαος",
+    "address": "Πάνορμο",
+    "phone": "2834051115",
+    "name_latin": "Sarris Nikolaos",
+    "lat": 35.417116,
+    "lon": 24.691875,
+    "address_latin": "PANORMO"
+  },
+  {
+    "name": "Σκαλίδης Ιωάννης",
+    "address": "Κισσού Κάμπος",
+    "phone": "2832020010",
+    "name_latin": "Skalidis Ioannis",
+    "lat": 35.187136,
+    "lon": 24.554377,
+    "address_latin": "KISSOU KAMPOS"
+  },
+  {
+    "name": "Σπανδάγος Βασίλειος",
+    "address": "Ηγ. Γαβριήλ & Κριάρη 1",
+    "phone": "28310 21022",
+    "name_latin": "Spandagos Vasileios",
+    "lat": 35.366687,
+    "lon": 24.470679,
+    "address_latin": "IG. GAVRIIL & KRIARI 1"
+  },
+  {
+    "name": "Σπαντιδάκης Ιωσήφ",
+    "address": "Πλατεία Τεσσάρων Μαρτύρων",
+    "phone": "28310 23666",
+    "name_latin": "Spandidakis Iosif",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "PLATEIA TESSARON MARTYRON"
+  },
+  {
+    "name": "Σπυριδάκη Αναστασία",
+    "address": "Αγία Γαλήνη",
+    "phone": "2832091168",
+    "name_latin": "Spyridaki Anastasia",
+    "lat": 35.096802,
+    "lon": 24.68702,
+    "address_latin": "AGIA GALINI"
+  },
+  {
+    "name": "Στεφανάκη Ελένη",
+    "address": "Τζανέ Μπουνιαλή 33 Πεταλάδικα",
+    "phone": "28310 52474, 28310 53074",
+    "name_latin": "Stefanaki Eleni",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "TZANE MPOUNIALI 33 PETALADIKA"
+  },
+  {
+    "name": "Στεφανάκη Μαρία",
+    "address": "Μαργαρίτες",
+    "phone": "2834022550",
+    "name_latin": "Stefanaki Maria",
+    "lat": 35.33969,
+    "lon": 24.686815,
+    "address_latin": "MARGARITES"
+  },
+  {
+    "name": "Στεφανάκη Όλγα",
+    "address": "Τρανταλίδου 28",
+    "phone": "28310 28283",
+    "name_latin": "Stefanaki Olga",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "TRANTALIDOU 28"
+  },
+  {
+    "name": "Στεφανάκης Εμμανουήλ",
+    "address": "Πηγή",
+    "phone": "28310 73044",
+    "name_latin": "Stefanakis Emmanouil",
+    "lat": 35.359525,
+    "lon": 24.572411,
+    "address_latin": "PIGI"
+  },
+  {
+    "name": "Τζιμπλακάκη Γεωργία",
+    "address": "Πέραμα",
+    "phone": "2834022290",
+    "name_latin": "Tziblakaki Georgia",
+    "lat": 35.370624,
+    "lon": 24.702996,
+    "address_latin": "PERAMA"
+  },
+  {
+    "name": "Τσαούλης Γεώργιος",
+    "address": "Μοάτσου 36 Ρέθυμνο",
+    "phone": "28310 25360, 28310 26828",
+    "name_latin": "Tsaoulis Georgios",
+    "lat": 35.365364,
+    "lon": 24.475863,
+    "address_latin": "MOATSOU 36 RETHYMNO"
+  },
+  {
+    "name": "Τσιομπίκας Γρηγόριος",
+    "address": "Εμμ. Παχλά 33 Περιβόλια",
+    "phone": "28310 54706",
+    "name_latin": "Tsiobikas Grigorios",
+    "lat": 35.366816,
+    "lon": 24.502504,
+    "address_latin": "EMM. PACHLA 33 PERIVOLIA"
+  },
+  {
+    "name": "Φραγκιαδάκης Δημήτριος & Φραγκιαδάκη Ειρήνη ΟΕ",
+    "address": "Ασκούτση 2 Ρέθυμνο",
+    "phone": "28310 25813",
+    "name_latin": "Fragkiadakis Dimitrios & Fragkiadaki Eirini Oe",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "ASKOUTSI 2 RETHYMNO"
+  },
+  {
+    "name": "Χαλκιαδάκης Αντώνιος",
+    "address": "Επισκοπή",
+    "phone": "28310 61266",
+    "name_latin": "Chalkiadakis Andonios",
+    "lat": 35.329306,
+    "lon": 24.33603,
+    "address_latin": "EPISKOPI"
+  },
+  {
+    "name": "Χαρκιανάκης Νικόλαος",
+    "address": "Αρκαδίου 31",
+    "phone": "28310 23088, 28310 28570",
+    "name_latin": "Charkianakis Nikolaos",
+    "lat": 35.367553,
+    "lon": 24.477286,
+    "address_latin": "ARKADIOU 31"
+  },
+  {
+    "name": "Χατζιδάκης Επαμεινώνδας",
+    "address": "Τρανταλίδου 22",
+    "phone": "28310 28856",
+    "name_latin": "Chatzidakis Epameinondas",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "TRANTALIDOU 22"
+  },
+  {
+    "name": "Χατζιδάκι Αγγελική",
+    "address": "Τρανταλλίδου 24",
+    "phone": "2831026519",
+    "name_latin": "Chatzidaki Angeliki",
+    "lat": 35.367036,
+    "lon": 24.473523,
+    "address_latin": "TRANTALLIDOU 24"
+  },
+  {
+    "name": "Χατζιδάκι Αργυρή",
+    "address": "Αργυρούπολη",
+    "phone": "28310 81081",
+    "name_latin": "Chatzidaki Argyri",
+    "lat": 35.285366,
+    "lon": 24.33483,
+    "address_latin": "ARGYROUPOLI"
+  },
+  {
+    "name": "Χιωτάκη Χαρίστη",
+    "address": "Λ. Κουντουριώτου 17",
+    "phone": "28310 28305",
+    "name_latin": "Chiotaki Charisti",
+    "lat": 35.366696,
+    "lon": 24.479452,
+    "address_latin": "L. KOUNTOURIOTOU 17"
+  },
+  {
+    "name": "Ψυχαράκη Ευρυδίκη",
+    "address": "Ατσιπόπουλο",
+    "phone": "2831032927",
+    "name_latin": "Psycharaki Evrydiki",
+    "lat": 35.352195,
+    "lon": 24.434728,
+    "address_latin": "ATSIPOPOULO"
+  },
+  {
+    "name": "Ψυχαράκης Σωκράτης",
+    "address": "Σφακάκι",
+    "phone": "28310 74500",
+    "name_latin": "Psycharakis Sokratis",
+    "lat": 35.380327,
+    "lon": 24.582399,
+    "address_latin": "SFAKAKI"
+  }
+]

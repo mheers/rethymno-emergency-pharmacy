@@ -1,0 +1,25 @@
+# Development/test image: Go + OpenCV + ONNX Runtime in one image so the
+# test suite (which spawns the OCR worker subprocess) can run.
+# Build: docker build -f Dockerfile.dev -t rethymno-emergency-pharmacy:dev .
+FROM golang:1.25-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libopencv-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG ORT_VERSION=1.23.2
+ADD https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VERSION}/onnxruntime-linux-x64-${ORT_VERSION}.tgz /tmp/ort.tgz
+RUN mkdir -p /opt/onnxruntime && tar xzf /tmp/ort.tgz -C /opt/onnxruntime --strip-components=1 && rm /tmp/ort.tgz
+
+ENV CGO_ENABLED=1 \
+    CGO_CXXFLAGS="-I/opt/onnxruntime/include" \
+    CGO_LDFLAGS="-L/opt/onnxruntime/lib -lonnxruntime" \
+    LD_LIBRARY_PATH=/opt/onnxruntime/lib \
+    PHARMA_OCR_ORT_LIB=/opt/onnxruntime/lib/libonnxruntime.so
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+ENTRYPOINT ["go"]

@@ -1,0 +1,34 @@
+# pharma-ocr as a service — the Rethymno pharmacy duty schedule.
+#
+# Default (`docker compose up -d`): the HTTP API with a daily midnight
+# refresh of the current week (in-memory cache, no volumes needed).
+# One-shot ingest: `docker compose run --rm ingest`.
+#
+# Configuration is documented in INTEGRATION.md §3–4. Override the image with
+# `PHARMACY_IMAGE`, the listen port with `PORT`.
+name: rethymno-emergency-pharmacy
+
+services:
+  serve:
+    image: ${PHARMACY_IMAGE:-mheers/rethymno-emergency-pharmacy:latest}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-127.0.0.1:8080}:8080"
+    environment:
+      # The daily refresh runs at *local* midnight — use the schedule's
+      # timezone, not the container default (UTC).
+      TZ: Europe/Athens
+    command: ["serve", "--listen", "0.0.0.0:8080"]
+    # Health: the Dockerfile HEALTHCHECK polls /healthz (curl installed).
+    # Runs as UID 10001; no volumes required — the cache is in memory.
+
+  # One-shot weekly job: fetch the current schedule from fskriti.gr and
+  # write the parsed JSON into ./schedules/current.json.
+  #   docker compose run --rm ingest
+  ingest:
+    image: ${PHARMACY_IMAGE:-mheers/rethymno-emergency-pharmacy:latest}
+    profiles: ["once"]
+    volumes:
+      - ./schedules:/data
+    command: ["ingest", "--out", "/data/current.json"]
+    restart: "no"

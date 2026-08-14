@@ -1,0 +1,21 @@
+# Downloaded third-party tooling — bootstrap with scripts/bootstrap.sh
+third_party/
+models/
+
+# Local runtime artifacts
+debug/
+*.db
+*.db-journal
+
+# Go
+*.test
+*.out
+coverage.*
+
+# Local config
+.env
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

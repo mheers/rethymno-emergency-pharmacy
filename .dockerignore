@@ -1,0 +1,10 @@
+# Keep the build context small and avoid re-uploading large artifacts.
+# models/ must stay in the context: the binary embeds the ONNX models via
+# //go:embed (assets_embed.go). Only the bootstrap tars are excluded.
+models/*.tar
+testdata/schedules/
+testdata/reference/
+third_party/
+debug/
+.git/
+*.db
