@@ -150,6 +150,12 @@ func GreekToLatin(s string) string {
 	s = norm.NFC.String(s)
 	s = strings.ToUpper(s)
 	rs := []rune(s)
+	// Strip Greek accents/tone marks so accented letters hit the base table.
+	for i := range rs {
+		if base, ok := greekToneChars[rs[i]]; ok {
+			rs[i] = base
+		}
+	}
 	var b strings.Builder
 	for i := 0; i < len(rs); i++ {
 		if i+1 < len(rs) {

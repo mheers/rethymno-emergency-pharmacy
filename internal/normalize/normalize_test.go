@@ -5,7 +5,7 @@ import "testing"
 func TestNormalizeGreek(t *testing.T) {
 	cases := map[string]string{
 		"ΔΕΥΤΕΡΑ":                "ΔΕΥΤΕΡΑ",
-		"Παπατζανή Μαρία":         "Παπατζανη Μαρια",
+		"Παπατζανή Μαρία":        "Παπατζανη Μαρια",
 		"08:00 - 21:00":          "08:00 - 21:00",
 		"Λ. Κουντουριώτου 81,":   "Λ. Κουντουριωτου 81,",
 		"Τρανταλίδου\u00a028":    "Τρανταλιδου 28",
@@ -44,9 +44,9 @@ func TestDigitsOnly(t *testing.T) {
 		"THA2831025123":  "2831025123",
 		"":               "",
 		"abc":            "",
-		"Ο28310Ο27264":    "028310027264",
-		"I2831O34458I":    "128310344581",
-		"B2B31027264":     "82831027264",
+		"Ο28310Ο27264":   "028310027264",
+		"I2831O34458I":   "128310344581",
+		"B2B31027264":    "82831027264",
 	}
 	for in, want := range cases {
 		if got := DigitsOnly(in); got != want {
@@ -57,10 +57,13 @@ func TestDigitsOnly(t *testing.T) {
 
 func TestGreekToLatin(t *testing.T) {
 	cases := map[string]string{
-		"ΔΑΦΝΟΜΗΛΗ":    "DAFNOMILI",
-		"ΚΟΥΝΤΟΥΡΙΩΤΟΥ": "KOUNTOURIOTOU",
-		"ΑΛΕΦΑΝΤΙΝΟΥ":  "ALEFANTINOU",
-		"ΠΑΠΑΤΖΑΝΗ":    "PAPATZANI",
+		"ΔΑΦΝΟΜΗΛΗ":         "DAFNOMILI",
+		"ΚΟΥΝΤΟΥΡΙΩΤΟΥ":     "KOUNTOURIOTOU",
+		"ΑΛΕΦΑΝΤΙΝΟΥ":       "ALEFANTINOU",
+		"ΠΑΠΑΤΖΑΝΗ":         "PAPATZANI",
+		"Άγνωστο Φαρμακείο": "AGNOSTO FARMAKEIO",
+		"Μοάτσου 8":         "MOATSOU 8",
+		"Κάπου 1":           "KAPOU 1",
 	}
 	for in, want := range cases {
 		if got := GreekToLatin(in); got != want {
