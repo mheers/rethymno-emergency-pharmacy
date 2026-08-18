@@ -196,3 +196,70 @@ func TestReferenceManganiotisLocationAndAddress(t *testing.T) {
 		t.Errorf("wrong Νικολουδάκης address: got %q, want %q", got, want)
 	}
 }
+
+func TestReferenceGoogleEnrichment(t *testing.T) {
+	refs, err := LoadReference(ReferenceJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	enriched := 0
+	for _, ref := range refs {
+		if ref.Google == nil {
+			continue
+		}
+		enriched++
+		if ref.Google.PlaceID == "" {
+			t.Errorf("%s: google block without place_id: %+v", ref.Name, ref.Google)
+		}
+		if ref.Google.OpeningHours != nil {
+			for _, period := range ref.Google.OpeningHours.Periods {
+				if period.Open == nil {
+					t.Errorf("%s: opening period without open point: %+v", ref.Name, period)
+				}
+			}
+		}
+		for _, photo := range ref.Google.Photos {
+			if photo.Base64 == "" {
+				t.Errorf("%s: photo without base64 data", ref.Name)
+			}
+		}
+	}
+	if enriched < 10 {
+		t.Errorf("expected 10+ enriched references, got %d", enriched)
+	}
+
+	// the reference catalog carries the Google coordinates (not the old
+	// approximated OSM ones) for enriched entries
+	dafnomili, ok := byName(t, refs, "Δαφνομήλη Γεωργία")
+	if !ok {
+		t.Fatal("Δαφνομήλη Γεωργία missing")
+	}
+	if dafnomili.Google == nil {
+		t.Fatal("Δαφνομήλη Γεωργία not enriched")
+	}
+	const epsilon = 1e-5
+	if diff(dafnomili.Lat, 35.365376) > epsilon || diff(dafnomili.Lon, 24.477451) > epsilon {
+		t.Errorf("wrong enriched Δαφνομήλη coordinates: got %.6f, %.6f", dafnomili.Lat, dafnomili.Lon)
+	}
+	if dafnomili.Google.FormattedAddress == "" {
+		t.Error("enriched address missing")
+	}
+}
+
+func diff(a, b float64) float64 {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}
+
+func byName(t *testing.T, refs []Reference, name string) (Reference, bool) {
+	t.Helper()
+	for _, ref := range refs {
+		if ref.Name == name {
+			return ref, true
+		}
+	}
+	return Reference{}, false
+}

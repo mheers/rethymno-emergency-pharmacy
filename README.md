@@ -23,6 +23,9 @@ image → OpenCV preprocessing → PP-OCRv6 (ONNX Runtime) → layout → parse 
   pharmacy entries: name, address, phone, per-entry OCR confidence.
 - Validates the result against the municipality's official pharmacy catalog
   (73 entries, embedded in the binary) and emits warnings for unknown matches.
+- **Enriches matched pharmacies** with the Google Places catalog block
+  (corrected coordinates, contact details, opening hours, base64 photo
+  thumbnails) when the reference catalog carries it.
 - Outputs deterministic JSON: stable key order, embedded image SHA-256 and
   per-stage timing.
 
@@ -197,6 +200,7 @@ host binary must expose an `ocr-worker` subcommand (see above), or set
 
 ```
 cmd/rethymno-emergency-pharmacy/     CLI (ingest, parse, inspect, benchmark, serve)
+cmd/merge-golden/                    one-off merge of the Google-enriched golden catalog into the reference
 internal/server/      internal HTTP API: TTL cache, midnight refresh
 internal/fetch/       HTTP download of the FSKriti schedule page
 internal/extract/     schedule-image detection and week selection
@@ -227,6 +231,10 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
 - Weekly schedule image: [fskriti.gr](https://fskriti.gr/εφημερίες-φαρμακείων-ρεθύμνου/)
 - Structured duty page (cross-check): [rethymno.gr](https://www.rethymno.gr/information-services/pharmacies/pharmacies.html)
 - Pharmacy catalog (validation dictionary): [rethymno.gr](https://www.rethymno.gr/guide/pharmacies)
+- Google Places enrichment: merged once into the reference catalog with
+  `go run ./cmd/merge-golden -golden <path-to-catalog/pharmacies.json>`
+  (the golden catalog is produced by the expat-map-guide enrichment workflow
+  and is not part of this repository).
 
 ## License
 

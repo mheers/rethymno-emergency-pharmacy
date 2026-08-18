@@ -157,9 +157,32 @@ serialized throughput (a parse takes on the order of seconds).
                 "phone": "2831023347",
                 "name_latin": "Papatzani Maria",  // filled from catalog, if matched
                 "address_latin": "GERAKARI 96",
-                "lat": 35.364, "lon": 24.475,     // OpenStreetMap coords, if matched
+                "lat": 35.364, "lon": 24.475,     // catalog coordinates, if matched
                 "confidence": 0.9,                // validation score, 0..1
-                "warnings": []
+                "warnings": [],
+                "google": {                       // optional Places API enrichment
+                  "place_id": "ChIJ...",
+                  "formatted_address": "Gerakari 96, Rethymno 741 31, Greece",
+                  "phone_international": "+30 2831 023347",
+                  "website": "https://...",
+                  "google_maps_url": "https://maps.google.com/?cid=...",
+                  "rating": 4.5,
+                  "user_rating_count": 12,
+                  "business_status": "OPERATIONAL",
+                  "types": ["pharmacy", "store"],
+                  "opening_hours": {
+                    "weekday_descriptions": ["Monday: 8:30 AM – 3:00 PM"],
+                    "periods": [
+                      { "open": {"day": 1, "hour": 8, "minute": 30},
+                        "close": {"day": 1, "hour": 15, "minute": 0} }
+                    ],
+                    "open_now": false
+                  },
+                  "current_opening_hours": { ... },
+                  "photos": [
+                    { "content_type": "image/jpeg", "base64": "..." }
+                  ]
+                }
               }
             ]
           },
@@ -179,6 +202,15 @@ serialized throughput (a parse takes on the order of seconds).
   "warnings": ["unknown phone 2831099999 (no catalog match)"]
 }
 ```
+
+`google` is a single optional block per pharmacy, copied verbatim from the
+reference catalog entry when the OCR phone matched a catalog pharmacy that
+carries Places API enrichment. Fields inside it use the raw provider values:
+`day` in `periods` uses Google numbering (0 = Sunday), `weekday_descriptions`
+are the provider's localized strings, and `photos[].base64` is a small
+thumbnail. The block is absent for unmatched pharmacies and for catalog
+entries that have no Google listing; `lat`/`lon` on the pharmacy itself are
+the catalog coordinates (Google-corrected when enrichment exists).
 
 Consumers should treat `warnings` as actionable: a schedule with unresolved
 entries still parses, but the listed pharmacies are not catalog-verified.

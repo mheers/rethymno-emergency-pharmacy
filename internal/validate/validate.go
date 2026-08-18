@@ -27,6 +27,55 @@ type Reference struct {
 	AddressLat string  `json:"address_latin,omitempty"`
 	Lat        float64 `json:"lat,omitempty"`
 	Lon        float64 `json:"lon,omitempty"`
+
+	// Google carries the optional Places API enrichment (corrected
+	// coordinates, contact details, opening hours, photos). It is absent
+	// for pharmacies without a Google listing.
+	Google *GoogleDetails `json:"google,omitempty"`
+}
+
+// GoogleDetails is the Places API enrichment attached to a catalog entry.
+type GoogleDetails struct {
+	PlaceID             string        `json:"place_id,omitempty"`
+	FormattedAddress    string        `json:"formatted_address,omitempty"`
+	PhoneInternational  string        `json:"phone_international,omitempty"`
+	Website             string        `json:"website,omitempty"`
+	GoogleMapsURL       string        `json:"google_maps_url,omitempty"`
+	Rating              float64       `json:"rating,omitempty"`
+	UserRatingCount     int64         `json:"user_rating_count,omitempty"`
+	BusinessStatus      string        `json:"business_status,omitempty"`
+	Types               []string      `json:"types,omitempty"`
+	OpeningHours        *OpenHours    `json:"opening_hours,omitempty"`
+	CurrentOpeningHours *OpenHours    `json:"current_opening_hours,omitempty"`
+	Photos              []PhotoDetail `json:"photos,omitempty"`
+}
+
+// OpenHours mirrors the Google Places opening-hours structure: human-readable
+// weekday descriptions plus the structured weekly periods.
+type OpenHours struct {
+	WeekdayDescriptions []string `json:"weekday_descriptions,omitempty"`
+	Periods             []Period `json:"periods,omitempty"`
+	OpenNow             bool     `json:"open_now,omitempty"`
+}
+
+// Period is a single open/close interval. Day uses Google numbering where 0
+// is Sunday; raw values are preserved.
+type Period struct {
+	Open  *PeriodPoint `json:"open"`
+	Close *PeriodPoint `json:"close,omitempty"`
+}
+
+// PeriodPoint is a day/time marker inside an opening-hours period.
+type PeriodPoint struct {
+	Day    int64 `json:"day"`
+	Hour   int64 `json:"hour"`
+	Minute int64 `json:"minute"`
+}
+
+// PhotoDetail is one downloaded thumbnail embedded in the catalog.
+type PhotoDetail struct {
+	ContentType string `json:"content_type,omitempty"`
+	Base64      string `json:"base64,omitempty"`
 }
 
 // Validation is the outcome for one pharmacy.

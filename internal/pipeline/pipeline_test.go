@@ -348,6 +348,89 @@ func TestFillFromCatalogEnrichesGeo(t *testing.T) {
 	}
 }
 
+// TestFillFromCatalogEnrichesGoogle verifies that matched pharmacies receive
+// the Google enrichment block (corrected coordinates, contact details,
+// opening hours, photos) from the catalog, while unmatched and
+// non-enriched entries stay clean.
+func TestFillFromCatalogEnrichesGoogle(t *testing.T) {
+	refs := []validate.Reference{
+		{
+			Name: "Δαφνομήλη Γεωργία", Address: "Δημοκρατίας 6", Phone: "2831056850",
+			Google: &validate.GoogleDetails{
+				PlaceID:            "ChIJbyS4JQh1mxQRLx7JVplGmAQ",
+				FormattedAddress:   "Dimokratias 6, Rethymno 741 32, Greece",
+				PhoneInternational: "+30 2831 056850",
+				Website:            "https://dafnomili.example",
+				GoogleMapsURL:      "https://maps.google.com/?cid=1",
+				OpeningHours: &validate.OpenHours{
+					WeekdayDescriptions: []string{"Monday: 8:30 AM - 3:00 PM"},
+					Periods: []validate.Period{{
+						Open:  &validate.PeriodPoint{Day: 1, Hour: 8, Minute: 30},
+						Close: &validate.PeriodPoint{Day: 1, Hour: 15, Minute: 0},
+					}},
+				},
+				Photos: []validate.PhotoDetail{{ContentType: "image/jpeg", Base64: "aGVsbG8="}},
+			},
+		},
+		{Name: "Καλογεράκης Ιωάννης", Address: "Μοάτσου 8", Phone: "2831022187",
+			NameLat: "Kalogerakis Ioannis", AddressLat: "Moatsou 8", Lat: 35.3641, Lon: 24.4736},
+	}
+	sched := &parse.Schedule{Days: []parse.DaySchedule{{
+		Date: time.Date(2026, 8, 17, 0, 0, 0, 0, time.UTC), Day: "ΔΕΥΤΕΡΑ",
+		Shifts: []parse.Shift{{From: "08:00", To: "21:00", Pharmacies: []parse.Pharmacy{
+			{Name: "ΔΑΦΝΟΜΗΛΗ ΓΕΩΡΓΙΑ", Address: "ΔΗΜΟΚΡΑΤΙΑΣ 6", Phone: "2831056850"},
+			{Name: "ΚΑΛΟΓΕΡΑΚΗΣ ΙΩΑΝΝΗΣ", Address: "ΜΟΑΤΣΟΥ 8", Phone: "2831022187"},
+			{Name: "Άγνωστο Φαρμακείο", Address: "Κάπου 1", Phone: "2831099999"},
+		}}},
+	}}}
+	if n := pipeline.FillFromCatalog(sched, refs); n != 0 {
+		t.Fatalf("names already present, expected 0 fills, got %d", n)
+	}
+
+	enriched := sched.Days[0].Shifts[0].Pharmacies[0]
+	if enriched.Google == nil {
+		t.Fatal("enriched pharmacy missing google block")
+	}
+	if enriched.Google.PlaceID != "ChIJbyS4JQh1mxQRLx7JVplGmAQ" ||
+		enriched.Google.Website != "https://dafnomili.example" ||
+		enriched.Google.FormattedAddress != "Dimokratias 6, Rethymno 741 32, Greece" {
+		t.Errorf("google enrichment wrong: %+v", enriched.Google)
+	}
+	if enriched.Google.OpeningHours == nil || len(enriched.Google.OpeningHours.Periods) != 1 {
+		t.Errorf("opening hours missing: %+v", enriched.Google)
+	}
+	if len(enriched.Google.Photos) != 1 || enriched.Google.Photos[0].Base64 != "aGVsbG8=" {
+		t.Errorf("photos missing: %+v", enriched.Google)
+	}
+
+	// non-enriched but matched pharmacy keeps OSM data and no google block
+	osm := sched.Days[0].Shifts[0].Pharmacies[1]
+	if osm.Google != nil {
+		t.Errorf("non-enriched pharmacy must not get a google block: %+v", osm.Google)
+	}
+	if osm.Lat != 35.3641 || osm.Lon != 24.4736 {
+		t.Errorf("OSM coordinates lost: %+v", osm)
+	}
+
+	// unmatched pharmacy stays clean
+	unmatched := sched.Days[0].Shifts[0].Pharmacies[2]
+	if unmatched.Google != nil || unmatched.Lat != 0 || unmatched.Lon != 0 {
+		t.Errorf("unmatched pharmacy must not be enriched: %+v", unmatched)
+	}
+
+	// the google block must appear in the JSON output
+	out, err := json.MarshalIndent(sched, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(out), `"google": {`) {
+		t.Errorf("google block missing from JSON: %s", out)
+	}
+	if !strings.Contains(string(out), `"place_id": "ChIJbyS4JQh1mxQRLx7JVplGmAQ"`) {
+		t.Errorf("place_id missing from JSON: %s", out)
+	}
+}
+
 func dayList(days []parse.DaySchedule) []string {
 	out := make([]string, 0, len(days))
 	for _, d := range days {

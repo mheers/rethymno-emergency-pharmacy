@@ -404,7 +404,8 @@ func nameSimilarity(ocr, catalog string) float64 {
 
 // FillFromCatalog completes missing name/address fields using the reference
 // catalog, keyed by the normalized phone number, and attaches the catalog's
-// Latin name/address and OpenStreetMap coordinates to every matched pharmacy.
+// Latin name/address, coordinates, and optional Google enrichment to every
+// matched pharmacy.
 func FillFromCatalog(sched *parse.Schedule, refs []validate.Reference) int {
 	byPhone := map[string][]validate.Reference{}
 	for _, r := range refs {
@@ -426,6 +427,7 @@ func FillFromCatalog(sched *parse.Schedule, refs []validate.Reference) int {
 				ph.AddressLat = ref.AddressLat
 				ph.Lat = ref.Lat
 				ph.Lon = ref.Lon
+				ph.Google = ref.Google
 				catName := strings.ToUpper(normalize.NormalizeGreek(ref.Name))
 				catAddr := strings.ToUpper(normalize.NormalizeGreek(ref.Address))
 				if ph.Name != catName || ph.Address != catAddr {

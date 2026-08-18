@@ -11,6 +11,7 @@ import (
 
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/layout"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/normalize"
+	"github.com/mheers/rethymno-emergency-pharmacy/internal/validate"
 )
 
 // Pharmacy is one reconstructed pharmacy entry.
@@ -24,6 +25,11 @@ type Pharmacy struct {
 	Lon        float64  `json:"lon,omitempty"`
 	Confidence float32  `json:"confidence"`
 	Warnings   []string `json:"warnings,omitempty"`
+
+	// Google carries the optional Places API enrichment from the
+	// reference catalog (corrected coordinates, contact details,
+	// opening hours, photos). It is absent for unmatched pharmacies.
+	Google *validate.GoogleDetails `json:"google,omitempty"`
 }
 
 // Shift is one duty shift with its pharmacies.
