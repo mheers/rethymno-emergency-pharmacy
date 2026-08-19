@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 	rethymnoemergency "github.com/mheers/rethymno-emergency-pharmacy"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/extract"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/fetch"
+	"github.com/mheers/rethymno-emergency-pharmacy/internal/validate"
 )
 
 // Config configures a Server.
@@ -95,6 +98,7 @@ func (s *Server) Run(ctx context.Context) error {
 func (s *Server) Serve(ctx context.Context) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.handleHealth)
+	mux.HandleFunc("GET /catalog", s.handleCatalog)
 	mux.HandleFunc("GET /schedule/current", s.handleCurrent)
 	mux.HandleFunc("GET /schedule/week", s.handleWeek)
 	mux.HandleFunc("GET /schedule/image", s.handleImage)
@@ -271,6 +275,24 @@ func (s *Server) parseWeek(ctx context.Context, date time.Time) (*rethymnoemerge
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	io.WriteString(w, `{"ok":true}`)
+}
+
+// handleCatalog serves the embedded golden pharmacy catalog (the reference
+// catalog entries, including Google-corrected lat/lon and optional Places
+// enrichment). The catalog changes rarely; it is served as immutable JSON
+// with a content ETag so consumers can cache it and only refetch on change.
+func (s *Server) handleCatalog(w http.ResponseWriter, r *http.Request) {
+	data := validate.ReferenceJSON
+	sum := sha256.Sum256(data)
+	etag := `"` + hex.EncodeToString(sum[:]) + `"`
+	if r.Header.Get("If-None-Match") == etag {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	w.Header().Set("ETag", etag)
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_, _ = w.Write(data)
 }
 
 func (s *Server) handleCurrent(w http.ResponseWriter, r *http.Request) {

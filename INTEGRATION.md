@@ -370,6 +370,7 @@ rethymno-emergency-pharmacy serve --listen 127.0.0.1:8080 --cache-ttl 24h
 | Route | Behavior |
 |---|---|
 | `GET /healthz` | `200 {"ok":true}` — no pipeline work; for orchestrator probes |
+| `GET /catalog` | the embedded golden pharmacy catalog (all reference entries, each with Google-corrected `lat`/`lon` and optional Places enrichment) — served as immutable JSON with a content `ETag`; consumers pull it daily and refetch only when it changes |
 | `GET /schedule/current` | the week covering today: fetch fskriti.gr → parse → validate |
 | `GET /schedule/week?date=DD/MM/YYYY` | the schedule week containing `date` (ISO `YYYY-MM-DD` also accepted) |
 | `GET /schedule/image?sha256=...` | replay a previously served result by `image_sha256` (last 20 cached) |
@@ -418,6 +419,14 @@ curl -fsS localhost:8080/schedule/current | jq '.days[0]'
 curl -fsS -H 'If-None-Match: "0eb319b1..."' localhost:8080/schedule/current
 curl -fsS -F image=@schedule.jpg localhost:8080/parse | jq '.schedule.city'
 ```
+
+**Golden catalog** (`GET /catalog`): the response is the JSON array of
+reference catalog entries (`name`, `address`, `phone`, `name_latin`,
+`address_latin`, `lat`, `lon`, and optional `google` enrichment). It is the
+single authoritative list of Rethymno pharmacies with Google-corrected
+coordinates; consumers that need a full pharmacy directory (not just the
+weekly rotation) should pull it once a day and rely on the `ETag` to skip
+unchanged refetches.
 
 Keep the cache warm and the fetch cadence independent of traffic (optional —
 the midnight refresh already guarantees freshness):

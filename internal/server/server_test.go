@@ -93,6 +93,7 @@ func get(t *testing.T, srv *Server, method, path string, body func(w *multipart.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.handleHealth)
+	mux.HandleFunc("GET /catalog", s.handleCatalog)
 	mux.HandleFunc("GET /schedule/current", s.handleCurrent)
 	mux.HandleFunc("GET /schedule/week", s.handleWeek)
 	mux.HandleFunc("GET /schedule/image", s.handleImage)
@@ -105,6 +106,45 @@ func TestHealth(t *testing.T) {
 	rr := get(t, srv, "GET", "/healthz", nil)
 	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), `"ok":true`) {
 		t.Fatalf("healthz: code=%d body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+// TestCatalog serves the embedded golden catalog with lat/lon on every entry.
+func TestCatalog(t *testing.T) {
+	srv, _, _ := newTestServer(nil)
+	rr := get(t, srv, "GET", "/catalog", nil)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("catalog: code=%d body=%s", rr.Code, rr.Body.String())
+	}
+	var entries []struct {
+		Name string  `json:"name"`
+		Lat  float64 `json:"lat"`
+		Lon  float64 `json:"lon"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &entries); err != nil {
+		t.Fatalf("catalog JSON: %v", err)
+	}
+	if len(entries) < 10 {
+		t.Fatalf("catalog has %d entries, want >= 10", len(entries))
+	}
+	for _, entry := range entries {
+		if entry.Name == "" {
+			t.Fatalf("catalog entry missing name: %+v", entry)
+		}
+		if entry.Lat == 0 || entry.Lon == 0 {
+			t.Fatalf("catalog entry %q missing lat/lon: %+v", entry.Name, entry)
+		}
+	}
+	etag := rr.Header().Get("ETag")
+	if etag == "" {
+		t.Fatal("catalog response missing ETag")
+	}
+	req := httptest.NewRequest("GET", "/catalog", nil)
+	req.Header.Set("If-None-Match", etag)
+	rr2 := httptest.NewRecorder()
+	srv.ServeHTTP(rr2, req) //nolint:errcheck
+	if rr2.Code != http.StatusNotModified {
+		t.Fatalf("catalog If-None-Match: expected 304, got %d", rr2.Code)
 	}
 }
 

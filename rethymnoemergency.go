@@ -33,6 +33,7 @@ package rethymnoemergency
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -233,6 +234,18 @@ func (c *Client) ParseJSON(ctx context.Context, source string, opts Options) ([]
 		return nil, err
 	}
 	return res.JSON()
+}
+
+// CatalogJSON returns the embedded golden pharmacy catalog (all reference
+// entries, each with Google-corrected lat/lon and optional Places enrichment)
+// as JSON. It is deterministic and independent of any pipeline state, so a
+// consumer can cache and diff it across days.
+func CatalogJSON() ([]byte, error) {
+	refs, err := validate.LoadReference(validate.ReferenceJSON)
+	if err != nil {
+		return nil, fmt.Errorf("rethymnoemergency: catalog: %w", err)
+	}
+	return json.MarshalIndent(refs, "", "  ")
 }
 
 // Close shuts down the OCR backend.
