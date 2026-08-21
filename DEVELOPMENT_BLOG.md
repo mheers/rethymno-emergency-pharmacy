@@ -266,18 +266,15 @@ The last addition is an optional HTTP API for service-to-service use — a small
 week plus a bounded replay index keyed by the image's SHA-256, and a refresh loop that
 fetches the upstream schedule image **once a day, unconditionally, at local midnight**
 (the schedule can change mid-week, so the cache is never trusted to be current across
-days; a failing upstream retries hourly while the last known result keeps being served).
-Design details worth stealing:
+days; a failing upstream retries at the next midnight while the last known result keeps
+being served). Design details worth stealing:
 
 - **Single-flight fetches**: concurrent requests for the same week coalesce onto one
   upstream fetch; the entry is stored in the cache *before* the flight is removed, so a
   caller can only ever observe either the flight or the cache — never a duplicate fetch.
-- **Stale revalidation, never blocking**: fresh entries are never refetched per request
-  (freshness is the daily refresh's job); stale ones are revalidated in the background so
-  a slow upstream never blocks a client — *unless* the stale entry provably does not cover
-  the requested date (the week's image is not published yet and the server fell back to
-  the newest one), in which case the fetch blocks and the caller gets the correct week
-  instead of a known-wrong one.
+- **Cache-only requests**: requests are served from the cache whether fresh or stale, so
+  the OCR pipeline runs at most once per day and a slow upstream never blocks a client
+  that already has data.
 - **ETag semantics**: the image SHA-256 doubles as the ETag; `If-None-Match` answers 304
   and `Cache-Control: max-age=<TTL>` tells clients how long to hold the response.
 - **Routes**: `GET /healthz`, `GET /schedule/current`, `GET /schedule/week?date=`,

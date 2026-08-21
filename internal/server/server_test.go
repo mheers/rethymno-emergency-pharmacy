@@ -202,14 +202,17 @@ func TestIfNoneMatch(t *testing.T) {
 
 func TestWeekByDate(t *testing.T) {
 	srv, _, _ := newTestServer(nil)
-	rr := get(t, srv, "GET", "/schedule/week?date=15/08/2026", nil)
+	// a date inside the current ISO week (Monday-based), so the week key
+	// is shared with /schedule/current
+	inWeek := mondayOf(time.Now()).AddDate(0, 0, 2)
+	rr := get(t, srv, "GET", "/schedule/week?date="+inWeek.Format("02/01/2006"), nil)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("week: code=%d body=%s", rr.Code, rr.Body.String())
 	}
 	if !strings.Contains(rr.Body.String(), "ΦΑΡΜΑΚΕΙΟ 1") {
 		t.Fatalf("week body: %s", rr.Body.String())
 	}
-	// the same week shares a cache entry with /schedule/current (14/08/2026)
+	// the same week shares a cache entry with /schedule/current
 	rr = get(t, srv, "GET", "/schedule/current", nil)
 	if rr.Header().Get("X-Served-From") != "cache" {
 		t.Fatal("week and current requests for the same ISO week must share the cache")
@@ -259,7 +262,10 @@ func TestParseMultipart(t *testing.T) {
 	}
 }
 
-func TestStaleRevalidatesInBackground(t *testing.T) {
+// TestStaleIsServedWithoutRevalidation pins the OCR budget contract: OCR
+// runs at most once per day, so a stale request is served from the cache
+// and never triggers a background revalidation.
+func TestStaleIsServedWithoutRevalidation(t *testing.T) {
 	var mu sync.Mutex
 	calls := 0
 	srv, advance, _ := newTestServer(func(ctx context.Context, date time.Time) (*rethymnoemergency.Result, error) {
@@ -284,19 +290,12 @@ func TestStaleRevalidatesInBackground(t *testing.T) {
 	if rr.Header().Get("X-Served-From") != "cache" {
 		t.Fatal("stale request must still be served from cache")
 	}
-	// the background revalidation must eventually replace the entry
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		mu.Lock()
-		n := calls
-		mu.Unlock()
-		if n >= 2 {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("background revalidation did not run")
-		}
-		time.Sleep(10 * time.Millisecond)
+	// OCR must not run again: the daily refresh is the only writer.
+	time.Sleep(50 * time.Millisecond)
+	mu.Lock()
+	defer mu.Unlock()
+	if calls != 1 {
+		t.Fatalf("stale request must not trigger a revalidation, got %d fetches", calls)
 	}
 }
 
@@ -360,7 +359,7 @@ func TestRefreshNowSchedules(t *testing.T) {
 		return nil, fmt.Errorf("upstream down")
 	}
 	srv.refreshNow(context.Background())
-	if want := now.Add(refreshRetryDelay); !srv.nextRefresh.Equal(want) {
+	if want := nextMidnight(now); !srv.nextRefresh.Equal(want) {
 		t.Fatalf("failure: next refresh %v, want %v", srv.nextRefresh, want)
 	}
 	// the stale entry from the earlier success must still be served
@@ -426,10 +425,10 @@ func TestFreshFallbackIsServedWithoutHammering(t *testing.T) {
 	mu.Unlock()
 }
 
-// TestStaleNonCoveringBlocksForCorrectWeek: once the stale fallback could
-// be replaced by a covering result, the caller must receive the correct
-// week synchronously instead of a known-wrong one.
-func TestStaleNonCoveringBlocksForCorrectWeek(t *testing.T) {
+// TestStaleNonCoveringIsServedFromCache: once the fallback goes stale it is
+// still the best available answer and must be served from the cache — OCR
+// never runs from the request path, so no blocking refetch happens.
+func TestStaleNonCoveringIsServedFromCache(t *testing.T) {
 	var mu sync.Mutex
 	calls := 0
 	lastWeek := mondayOf(time.Now()).AddDate(0, 0, -7)
@@ -458,15 +457,15 @@ func TestStaleNonCoveringBlocksForCorrectWeek(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("second: code=%d body=%s", rr.Code, rr.Body.String())
 	}
-	if rr.Header().Get("X-Served-From") != "" {
-		t.Fatal("a stale non-covering entry must be fetched synchronously, not served")
+	if rr.Header().Get("X-Served-From") != "cache" {
+		t.Fatal("a stale non-covering entry must be served from the cache, not refetched")
 	}
-	if !strings.Contains(rr.Body.String(), "ΦΑΡΜΑΚΕΙΟ 2") {
-		t.Fatal("caller must receive the covering (correct) week")
+	if !strings.Contains(rr.Body.String(), "ΦΑΡΜΑΚΕΙΟ 1") {
+		t.Fatal("the fallback (best available) week must be served")
 	}
 	mu.Lock()
-	if calls != 2 {
-		t.Fatalf("expected exactly one blocking refetch, got %d", calls)
+	if calls != 1 {
+		t.Fatalf("expected no request-path refetch, got %d", calls)
 	}
 	mu.Unlock()
 }

@@ -133,31 +133,20 @@ type flight struct {
 
 // entryFor returns the cached entry for the week of date (zero = current).
 //
-// Fresh entries are never refetched per request — freshness is the daily
-// refresh's job (see refresh.go), so the upstream is hit at most once a
-// day. Stale entries are revalidated in the background so a slow upstream
-// never blocks a client that already has a result — unless the stale entry
-// provably does not cover the requested date, in which case the fetch
-// blocks and the caller receives the correct week instead of a known-wrong
-// one.
+// OCR is expensive — the pipeline loads ONNX Runtime models in a worker
+// subprocess and can burst past 1 GiB of RAM — so it must run at most once
+// per day. Requests therefore never trigger a fetch: the daily midnight
+// refresh (see refresh.go) is the only writer, and fresh or stale entries
+// are served from the cache unchanged. A fallback entry (the newest image
+// while the requested week's image is not published yet) is the best
+// available answer and is served too; the next daily refresh replaces it.
+// Only a cold start with no cached entry at all joins the in-flight fetch,
+// so the first result is served instead of failing.
 func (s *Server) entryFor(ctx context.Context, date time.Time) (*entry, bool, error) {
 	ref := weekAnchor(date, s.now())
 	key := weekKey(ref)
 	if e := s.cache.get(key); e != nil {
-		if coversDate(e.result, ref) {
-			if s.cache.fresh(e, s.cfg.CacheTTL) {
-				return e, false, nil
-			}
-			go s.fetchAndStore(context.WithoutCancel(ctx), key, date)
-			return e, false, nil
-		}
-		// The entry does not cover the requested date: it is a fallback
-		// (the week's image is not published yet). While fresh it is the
-		// best available answer; when stale the caller must not receive a
-		// known-wrong week, so fetch synchronously.
-		if s.cache.fresh(e, s.cfg.CacheTTL) {
-			return e, false, nil
-		}
+		return e, false, nil
 	}
 	e, err := s.fetchAndStore(ctx, key, date)
 	if err != nil {

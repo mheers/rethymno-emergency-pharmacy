@@ -341,8 +341,8 @@ shell out to the inherited CLI binary as a subprocess.
 ## 4. HTTP API (`serve`)
 
 *Implemented.* An internal JSON endpoint with an in-memory TTL cache, a
-daily midnight refresh, stale-while-revalidate, and single-flight fetches —
-so fskriti.gr is hit at most once per day and consumers never block on a
+daily midnight refresh, and single-flight fetches — so fskriti.gr is hit and
+the OCR pipeline runs at most once per day, and consumers never block on a
 slow or failing upstream.
 
 ### 4.1 Is it worth it?
@@ -384,22 +384,21 @@ rethymno-emergency-pharmacy serve --listen 127.0.0.1:8080 --cache-ttl 24h
   change mid-week (corrections, substitutions), so the cache is never
   trusted to be current without a fresh fetch; the served data is therefore
   never older than one daily fetch.
-- **Failure backoff.** A failed refresh retries hourly until it succeeds;
-  the last known-good result keeps being served in the meantime.
-- **TTL & stale-while-revalidate.** Entries are cached for `--cache-ttl`
-  (default `24h`), keyed by ISO week (Monday-based, matching the schedule's
-  week boundaries). A stale entry is still served immediately while a
-  background goroutine revalidates it — a slow or down upstream never
-  blocks a client that already has data.
+- **Failure backoff.** A failed refresh is retried at the next local
+  midnight; the last known-good result keeps being served in the meantime.
+  OCR never runs more than once per day.
+- **Cache-only requests.** Entries are cached for `--cache-ttl` (default
+  `24h`), keyed by ISO week (Monday-based, matching the schedule's week
+  boundaries). Requests are served from the cache whether fresh or stale —
+  a slow, down, or memory-constrained upstream never blocks a client that
+  already has data, and requests never trigger the OCR pipeline.
 - **Coverage check.** An entry is served for a requested date only when the
   parsed schedule actually covers that date. If the new week's image is not
   published yet, the newest result (previous week) is served as the best
-  available answer and is replaced by the next daily fetch; a *stale* entry
-  that provably does not cover the requested date is fetched synchronously,
-  so a caller never receives a known-wrong week.
+  available answer and is replaced by the next daily fetch.
 - **Single-flight.** Concurrent requests for the same week share one fetch,
-  and fresh entries are never refetched per request — the upstream is hit
-  at most once per day.
+  and a cold start joins the startup warm-up fetch — the upstream and OCR
+  are hit at most once per day.
 
 **Response contract** (identical JSON to §1.5):
 

@@ -352,8 +352,8 @@ func cmdBenchmark(ctx context.Context, args []string) error {
 
 // cmdServe runs the internal HTTP API: fetches the current schedule image
 // once a day at local midnight, caches the parsed result (default TTL 24h),
-// and revalidates stale entries in the background so consumers never block
-// on a slow or failing upstream.
+// and serves requests exclusively from the cache so the OCR pipeline runs
+// at most once per day.
 func cmdServe(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	listen := fs.String("listen", "127.0.0.1:8080", "HTTP listen address")

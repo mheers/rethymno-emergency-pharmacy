@@ -102,10 +102,10 @@ Flags:
 
 `rethymno-emergency-pharmacy serve` exposes the schedule as an internal JSON API for
 service-to-service use. It fetches the upstream schedule image **once a
-day, unconditionally, at local midnight** — the cache is never trusted to
-be current across days, because the schedule can change mid-week — and
-stale entries are revalidated in the background so consumers never block
-and updates are never lost:
+day, at local midnight** (plus a startup warm-up) — the cache is never
+trusted to be current across days, because the schedule can change
+mid-week — and requests are served exclusively from the cache, so the OCR
+pipeline runs at most once per day:
 
 ```sh
 rethymno-emergency-pharmacy serve --listen 127.0.0.1:8080
