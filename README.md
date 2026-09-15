@@ -33,6 +33,15 @@ The models (PP-OCRv6 detection + recognition) and the ONNX Runtime C library
 are **embedded into the binary** — a `go build` produces a self-contained
 artifact that needs only the OpenCV shared libraries at runtime.
 
+### Why not a vision LLM?
+
+In September 2026 we evaluated reading the schedule image with a
+vision-capable LLM (DeepSeek V4.1 Flash) instead of the OCR pipeline. The
+model read the image well and the approach is much simpler, but it cannot
+canonicalize names against the reference catalog, verify phone numbers, or
+guarantee deterministic output — so the validated pipeline stays. The full
+comparison is in [VISION_EVALUATION.md](VISION_EVALUATION.md).
+
 ## Requirements
 
 - Go 1.25+ with CGO enabled
@@ -223,6 +232,9 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
 - [DEVELOPMENT_BLOG.md](DEVELOPMENT_BLOG.md) — a full developer story: Greek
   OCR chaos, the GoCV/glibc crash, the ORT heap corruption, the NCHW/HWC
   tensor-order bug, and how each was solved.
+- [VISION_EVALUATION.md](VISION_EVALUATION.md) — why the validated OCR
+  pipeline stays: the September 2026 comparison against a vision LLM and the
+  decision to keep the deterministic implementation.
 - `rethymno-emergency-pharmacy inspect <image>` — geometry, columns and raw OCR diagnostics
   for a single image.
 
