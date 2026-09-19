@@ -265,9 +265,11 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
   decision to keep the deterministic implementation.
 - [TYPESAFE_EVALUATION.md](TYPESAFE_EVALUATION.md) — where System One judgments
   can replace fragile parsing heuristics (catalog identity adjudication, line
-  classification, golden-catalog merge), the measured golden-merge adjudicator
-  now used by `merge-golden`, the measured catalog-identity adjudicator wired
-  into the runtime behind `--judge`, and the guardrails they run behind.
+  classification, golden-catalog merge, plausibility verification), the measured
+  golden-merge adjudicator now used by `merge-golden`, the measured
+  catalog-identity adjudicator wired into the runtime behind `--judge`, the
+  measured plausibility verifier for unmatched entries (warnings-only, not yet
+  wired), and the guardrails they run behind.
 - `rethymno-emergency-pharmacy inspect <image>` — geometry, columns and raw OCR diagnostics
   for a single image.
 

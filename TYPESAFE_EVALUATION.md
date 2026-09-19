@@ -7,21 +7,24 @@ semantic glue *around* OCR — deciding which catalog entry a garbled reading
 refers to, what a line is, whether a phone-keyed match is trustworthy — is
 currently hand-tuned string heuristics and edit-distance thresholds. Those are
 exactly the decisions System One questions are built for, and they can be added
-behind code that still validates, canonicalises and owns the output. Two
+behind code that still validates, canonicalises and owns the output. Three
 prototypes are implemented: `internal/adjudicate` behind `cmd/merge-golden`
 (adjudication on by default, `-judge=false` forces the deterministic path; §4
-measures it) and the catalog-identity adjudicator, measured in §4.1 and wired
-into the runtime behind the opt-in `--judge` flag. The runtime pipeline is
-otherwise unchanged, and this document records the evaluation so the work does
-not have to be re-derived.
+measures it), the catalog-identity adjudicator, measured in §4.1 and wired into
+the runtime behind the opt-in `--judge` flag, and the plausibility verifier,
+measured in §4.2 (warnings-only, not wired). The runtime pipeline is otherwise
+unchanged, and this document records the evaluation so the work does not have
+to be re-derived.
 
 - **Date:** 2026-09-19
-- **Model:** `jev-latest` (a concrete version must be pinned for reproducibility)
+- **Model:** `jev-1.13.0` pinned for the measurements
+  (`adjudicate.DefaultJudgeModel`); re-measure when the version changes
 - **Endpoint:** `POST https://api.typesafe.ai/v1/systemone`
 - **Scope:** static review of the current revision, plus the golden-merge
-  experiment in §4. Every threshold and question wording must be re-evaluated
-  on the full corpus before it is trusted.
-- **Prototype:** `internal/adjudicate`; `cmd/merge-golden -judge`
+  experiment in §4, the catalog-identity experiment in §4.1 and the
+  plausibility experiment in §4.2. Every threshold and question wording must
+  be re-evaluated on the full corpus before it is trusted.
+- **Prototype:** `internal/adjudicate`; `cmd/merge-golden -judge`; runtime `--judge`
 - **Prior decision:** [VISION_EVALUATION.md](VISION_EVALUATION.md) — a vision LLM
   does not read the schedule; the validated pipeline stays the source of truth.
 
@@ -196,6 +199,12 @@ name?", "Is this a plausible street address for Rethymno?" — consumed as
 warnings and, optionally in a later phase, as an extra dimension in the
 confidence formula. The fixed weights remain code's business in the first phase.
 The judgment reports; code decides; nothing is rewritten.
+
+**Measured in §4.2.** `internal/adjudicate/plausibility.go`
+(`AdjudicatePlausibility`). The address question has an empty band (0.68, 0.72]
+and supports a 0.7 warning gate; the name question repairs the fixed rules'
+false alarms and surfaces misrouted lines, but name-less garbage that reads
+like a name can slip through. Not wired into the runtime.
 
 ### E. Week and page gates (runtime, opt-in)
 
@@ -372,6 +381,99 @@ returns Βαρούχα. `internal/pipeline/identity_test.go` pins both the overr
 the fallback behavior, including the case where the un-picked validator flags a
 name mismatch against the judged entry.
 
+### 4.2 Experiment: plausibility verification (2026-09-19)
+
+Opportunity D is implemented as two Nouls per entry
+(`internal/adjudicate/plausibility.go`): "Is this a plausible Greek pharmacy
+name?" and "Is this a plausible street address in or near Rethymno?". The
+experiment measures where the probabilities separate; the judgment is not wired
+into the runtime.
+
+```sh
+TYPESAFE_EXPERIMENT=1 TYPESAFE_EXPERIMENT_OUT=/tmp/ts-plausibility \
+  go test -run TestPlausibilityAdjudicationExperiment -v ./internal/adjudicate
+```
+
+**Dataset.** 79 entries (`internal/adjudicate/testdata/plausibility_corpus.json`).
+63 are the parsed name and address of every pharmacy
+in the three checked-in schedule images, dumped *before* the catalog fill with
+`internal/pipeline` `TestDumpPrefillCorpus` — exactly the fields a consumer
+sees when the phone number does not match the catalog. The corpus contains no
+such unmatched entry (every phone in the three weeks matches), so the failure
+is hypothetical and the readings are real; the remaining 16 entries add
+verbatim `raw_ocr` garbage lines and clean catalog controls. Every field is
+labelled by reviewing the raw OCR and the source images: **clean** holds only
+name/address content, **polluted** holds the expected content plus content
+from another field (weekday label, location description, Latin transliteration
+line), **garbage** holds no name/address content (phone, time, date, document
+title, description). Names: 30 clean / 39 polluted / 10 garbage; addresses:
+56 / 17 / 6. Model `jev-1.13.0`.
+
+**Per-field acceptance** ("accepted" = signal ≥ 0.5; for a garbage field,
+accepted means missed):
+
+| Field and truth | n | Today's fixed rules | System One |
+|---|---|---|---|
+| name clean | 30 | 12/30 | **30/30** |
+| name polluted | 39 | 38/39 | 17/39 |
+| name garbage | 10 | 6/10 missed | 7/10 missed |
+| address clean | 56 | 56/56 | 56/56 |
+| address polluted | 17 | 17/17 | 17/17 |
+| address garbage | 6 | 4/6 missed | 2/6 missed |
+
+**Addresses separate cleanly.** Every clean address scores 0.72–0.89 (median
+0.82), every garbage address 0.03–0.68 (median 0.44) — an empty band
+(0.68, 0.72], the second experiment with a clean cut. A 0.7 gate flags 6/6
+garbage addresses (a phone line, a weekday label, a shift time, a date, a
+pharmacy name, and the both-fields case) with no false alarm on the 56 clean
+addresses (3 of 17 polluted ones are flagged too). Today's rules accept 4/6
+garbage addresses: the phone line, both shift times and the date pass because
+each contains a 1–4 digit run.
+
+**Names are a pollution detector, not a name detector.** The baseline is
+unreliable in both directions: it rejects 18/30 clean names (the recognizer
+writes Greek with Latin look-alikes, so `XAPKIANAKHΣ` fails the two-Greek-
+letter test) while accepting 6/10 garbage names. The Noul accepts 30/30 clean
+names — the false alarms disappear — and flags 22/39 polluted ones, but
+garbage names overlap clean names (median 0.53 vs 0.83): misrouted location
+descriptions and document titles read like names (`ENANTIΣABOIΔAKH` 0.83, the
+duty-program title 0.53, `ЕIΣTЕA(PОA)` 0.72). There is no empty band. A 0.5
+gate flags 3/10 garbage names with no false alarm on clean names; 0.7 flags
+8/10 garbage and 35/39 polluted names at the cost of 5/30 clean ones.
+
+**Entry level** (an entry is flagged when either field is below the gate). At
+t=0.7 the judgment flags 13/15 entries with a garbage field against 8/15 for
+the baseline, and 39/45 entries with a polluted field, while false-alarming on
+3/21 all-clean entries against 14/21 for the baseline — the baseline's 14
+false alarms are precisely the Latin-lookalike names.
+
+**Wording matters.** The first name criteria ("It reads like the name of a
+Greek pharmacy") accepted 6/10 garbage and 32/39 polluted names. Naming the
+non-name classes ("the field holds *only* a name … even when a name-like word
+appears inside") cut polluted acceptance to 17/39 and raised 0.7-gate garbage
+detection from 5/10 to 8/10, with all 30 clean names still accepted at the 0.5
+table. The address criteria were left unchanged; their numbers moved by ≤0.04.
+
+**Repeatability.** At t=0.5 two of 158 field decisions flipped between
+identical runs, both at 0.49–0.50. At t=0.7 six flipped, all between 0.63 and
+0.75. Answers vary more than the identity experiment's (which returned
+identical picks on all readings), so a runtime use must cache like any other.
+
+**Batching** fails for the third time: all 79 entries in one request agrees
+with the per-entry requests on only 44/79 name and 67/79 address decisions.
+
+**Cost.** 79 requests, 50.3k in / 3.6k out tokens, 28 s wall. Unmatched
+entries are rare — none in the three corpus weeks — so runtime volume is
+negligible.
+
+**Reading of the result.** Address plausibility is ready for a warning-only
+runtime use at the measured 0.7 gate. Name plausibility repairs the fixed
+rules' false alarms and surfaces extra lines routed into the name, but it does
+not reliably reject name-less garbage that reads like a name; if wired, it
+should warn at 0.5 (no false alarms, partial detection) or 0.7 (more detection,
+5/30 clean names flagged). Either way it only adds warnings — the field is
+never rewritten and the confidence formula stays untouched.
+
 ## 5. Guardrails: what stays in code
 
 - **Candidate retrieval, normalisation, canonicalisation, validation, JSON
@@ -383,6 +485,8 @@ name mismatch against the judged entry.
 - Low confidence produces a **warning or fallback**, never a silent overwrite.
   Implemented: `internal/pipeline/identity.go` falls back to the similarity
   pick and records a warning for every non-accepted verdict.
+- Plausibility verification is measured but **not wired** (§4.2); when wired it
+  adds warnings only and never touches the confidence formula.
 - Answers to unused speculative questions are ignored; thresholds are evaluated
   on the corpus, not copied from cookbook examples.
 - A pinned model version and a decision cache keyed by input hash are
@@ -430,7 +534,11 @@ name mismatch against the judged entry.
    `pipeline.FillFromCatalogJudged`, `ValidateResultWithPicks` and
    `ClientConfig.IdentityJudge` (`--judge`), with the measured 0.8 gates and a
    required decision cache; the similarity pick stays the fallback.
-3. **B / D / E** only after measuring on the corpus, keeping the default path
+3. **D — plausibility verification.** Measured (§4.2). Wire it as opt-in
+   warnings for unmatched entries: address at the measured 0.7 gate, name
+   conservatively at 0.5; cached like every runtime judgment. The default path
+   stays untouched, and the judgment never rewrites a field or the score.
+4. **B / E** only after measuring on the corpus, keeping the default path
    untouched.
 
 Every phase must leave the existing golden tests green, add no required network
@@ -453,6 +561,14 @@ call, and change no JSON schema (warnings are additive).
   140 pair verdicts between two identical runs, all at confidence ≤ 0.40. Any
   runtime use must cache or check in decisions; never act on an unrecorded live
   answer.
+- The §4.2 dataset's unmatched scenario is simulated: the three corpus weeks
+  contain no phone that fails to match the catalog, so its 63 corpus entries are
+  the real pre-fill parse output and the misread is hypothetical; the other 16
+  entries reuse real `raw_ocr` lines with labels assigned by review.
+- The §4.2 name question misclassifies misrouted location descriptions and
+  document titles as plausible names; re-word or re-measure before relying on it
+  for that class. Its answers vary between runs more than the identity
+  experiment's — six of 158 field decisions flipped at t=0.7 — so cache them.
 - The provider is a third party. Even where the data is public, sending it there
   is a decision for the project owner, not a side effect of this document.
 

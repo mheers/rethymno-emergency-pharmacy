@@ -1,0 +1,795 @@
+{
+  "note": "Plausibility experiment dataset (TYPESAFE_EVALUATION.md 3D). Corpus entries: pre-fill parse of the three checked-in schedule images (internal/pipeline TestDumpPrefillCorpus, OCR run 2026-09-19), i.e. the fields a consumer sees when the phone does not match the catalog. Synthetic entries: verbatim raw_ocr lines for the observed garbage classes and clean catalog controls. Per-field quality: clean = only name/address content; polluted = expected content plus content from another field; garbage = no name/address content.",
+  "entries": [
+    {
+      "id": "10.08-δευτερα-08:00-1",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "AATZAN",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "clean",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-δευτερα-08:00-2",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Μπροκαλάκη Ζαχαρένια / Περιστεράκη Τερέζα)",
+      "name": "IΣΩAОTОΔMAPXЕIO IPOKAAKH ΔIГAΣTОBARRIО-HОΣ",
+      "address": "KOYMOYNΔOYPOY2",
+      "phone": "2831025123",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-δευτερα-21:00-3",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "AAONOMHAH KATΩAOΔIAГNΩΣTIKO EГKEΦAAOΣ ∏IAPAΣKEYH",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-παρασκευη-08:00-4",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΠΑΡΑΣΚΕΥΗ 08:00-21:00 (pre-fill parse; catalog: Νικολουδάκης Νικόλαος - Ευαγγελία)",
+      "name": "NIKOAOYAAKHΣ",
+      "address": "A.AГNΩΣTОYΣTPATIΩTH31",
+      "phone": "2831026052",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-παρασκευη-21:00-5",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΠΑΡΑΣΚΕΥΗ 21:00-08:00 (pre-fill parse; catalog: Δραμιτινού Γεωργία)",
+      "name": "APAMITINOY ∑TOΔPOMOKΛ.AΣKΛHIOΣ AΓANΗΤOIΜAÇΣUΜNOΛIΤΕΘAΘΛAΜΕVA",
+      "address": "X.ΔAΣKAΛAKH5",
+      "phone": "2831023026",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-τριτη-08:00-6",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΤΡΙΤΗ 08:00-21:00 (pre-fill parse; catalog: Μαστοράκη - Κεραμιανάκη)",
+      "name": "KEPAMIANAKH ENANTIΣABOIΔAKHKAAAIOEA",
+      "address": "MAPKOYOPTAAIOY20 20MARKOUPOTALIOUSTR",
+      "phone": "2831051113",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-τριτη-21:00-7",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΤΡΙΤΗ 21:00-08:00 (pre-fill parse; catalog: Μαγγανιώτης Σταμάτης)",
+      "name": "MAГTANIΩTHΣ IAATEIAAГIOYГEPГIOY KAAIOEA ∑ABBATO",
+      "address": "AT.ΣIKEAIANOY7",
+      "phone": "2831027828",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-σαββατο-08:00-8",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "AATZAN",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "clean",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-σαββατο-08:00-9",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "IΣΩAОTОΔHMAPXEIO AIAΣKO∑",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-σαββατο-21:00-10",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΣΑΒΒΑΤΟ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "ΔAONOMHAH KATΩAГOΔIAГNΩΣTIKO ETKEΦAΛOΣ AΕΜΕΡΣΟΥΜΕΤΙΤОΡΡАΜΜАТΩΝEΦ",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-τεταρτη-08:00-11",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Βανδώρου Άννα / Πρινιωτάκης Ηλίας - Παναγιώτης)",
+      "name": "IPINIΩTAKHΣHAIAΣ",
+      "address": "A.KOYNTOYPIΩTH81",
+      "phone": "2831027264",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-τεταρτη-08:00-12",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Στεφανάκη Όλγα)",
+      "name": "AENANTIAOTHΔEH ∑TEOANAKHOAFA ENANTINOΣOKOMEIOY",
+      "address": "TPANTAAAIΔOY28",
+      "phone": "2831028283",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-τεταρτη-21:00-13",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΤΕΤΑΡΤΗ 21:00-08:00 (pre-fill parse; catalog: Αλεφαντινού Μαρία)",
+      "name": "AAEOANTINOY ENANTIKΛ.AΣKAHIOΣ KYPIAKH",
+      "address": "ZAMNEAIOY19 19ZAMPELIOYSTR",
+      "phone": "2831026115",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-κυριακη-08:00-14",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Βανδώρου Άννα / Πρινιωτάκης Ηλίας - Παναγιώτης)",
+      "name": "IPINIΩTAKHΣ",
+      "address": "A.KOYNTOYPIΩTH81",
+      "phone": "2831027264",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-κυριακη-08:00-15",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Σπαντιδάκης Ιωσήφ)",
+      "name": "AENANTIAOTHΔEH ΣIIANTIAAKH",
+      "address": "ΠIA.4ΩNMAPTYPΩN",
+      "phone": "2831023666",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-κυριακη-21:00-16",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΚΥΡΙΑΚΗ 21:00-08:00 (pre-fill parse; catalog: Μαστοράκη - Κεραμιανάκη)",
+      "name": "KEPAMIANAKH ENANTIΣABOIΔAKHKAMIOEA MEPIΩNΘAAVAΡΤÀΤΑΙΚAΙΣТΗΝΙΣΤΟΣΕΛIΔΑΤ",
+      "address": "MAPKOYIOPTAAIOY20 20MARKOUPOTALIOUSTR",
+      "phone": "2831051113",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-πεμπτη-08:00-17",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΠΕΜΠΤΗ 08:00-21:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "APANAAKH",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-πεμπτη-21:00-18",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΠΕΜΠΤΗ 21:00-08:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "AATZAN IΣΩAОTOΔHMAXEIO AEYTEPA",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "10.08-δευτερα-08:00-19",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Χαρκιανάκης Νικόλαος)",
+      "name": "XAPKIANAKHΣ",
+      "address": "APKAΔIOY31",
+      "phone": "2831023088",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-δευτερα-08:00-20",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Καλογεράκης Ιωάννης)",
+      "name": "ΔIAΣTOΣINEMAAYPA KAΛOFEPAKHΣ ENANTITAXYΔPOMEIOY",
+      "address": "MOATΣOY8",
+      "phone": "2831022187",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "10.08-δευτερα-21:00-21",
+      "source": "corpus",
+      "provenance": "10.08.2026-17.08.2026_page-0001-2, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "AAONOMHAH KATΩAOΔIAГNΩΣTIKO ETKEΦAΛOΣ",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-δευτερα-08:00-1",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Χαρκιανάκης Νικόλαος)",
+      "name": "XAPKIANAKHΣ",
+      "address": "APKAΔIOY31",
+      "phone": "2831023088",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-δευτερα-08:00-2",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Καλογεράκης Ιωάννης)",
+      "name": "ΔIIAΣTOΣINEMAAYPA KAΛOIEPAKHΣ ENANTITAXYΔPOMEIOY",
+      "address": "MOATΣOY8",
+      "phone": "2831022187",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-δευτερα-21:00-3",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "AAONOMHAH KATΩAOΔIAГNΩΣTIKO EГKEΦAAOΣ ∏IAPAΣKEYH",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-παρασκευη-08:00-4",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΠΑΡΑΣΚΕΥΗ 08:00-21:00 (pre-fill parse; catalog: Σπαντιδάκης Ιωσήφ)",
+      "name": "ΣIIANTIAAKH",
+      "address": "IA.4ΩNMAPTYPΩN",
+      "phone": "2831023666",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-παρασκευη-21:00-5",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΠΑΡΑΣΚΕΥΗ 21:00-08:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "AIAΣKOΣ AΓANΗΤOIΜAÇΣUΜNOΛIΤΕΘAΘΛAΜΕVA",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-τριτη-08:00-6",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΤΡΙΤΗ 08:00-21:00 (pre-fill parse; catalog: Νικολουδάκης Νικόλαος - Ευαγγελία)",
+      "name": "NIKOAOYAAKH",
+      "address": "AГNΩΣTOYΣTPATIΩTH31",
+      "phone": "2831026052",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-τριτη-21:00-7",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΤΡΙΤΗ 21:00-08:00 (pre-fill parse; catalog: Θωμαδάκη Ιωάννα)",
+      "name": "OΩMAAAKH ENANTIΔHMOTIKOYKHOY ∑ABBATO",
+      "address": "HF.「ABPIHA29 29IG.GAVRIILSTR",
+      "phone": "2831028366",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "17.08-σαββατο-08:00-8",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Κουδουναράκης Λεωνίδας)",
+      "name": "KOYAOYNAPAKHΣ",
+      "address": "MOATΣOY60",
+      "phone": "2831050640",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-σαββατο-08:00-9",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Κούνουπας Ανδρέας)",
+      "name": "KOYNOYIIAΣ IATEIAMHTPOOΛEΩΣ",
+      "address": "MANIOYΔAKH17",
+      "phone": "2831022420",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-σαββατο-21:00-10",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΣΑΒΒΑΤΟ 21:00-08:00 (pre-fill parse; catalog: Χαρκιανάκης Νικόλαος)",
+      "name": "XAPKIANAKHΣ ΔIIΛAΣTOΣINEMAAYPA AΕΜΕΡΣΟΥΜΕΤΙΤОΡΡАΜΜАТΩΝEΦ",
+      "address": "APKAΔIOY31",
+      "phone": "2831023088",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-τεταρτη-08:00-11",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Καββάλου Ελένη)",
+      "name": "KABBAAOY",
+      "address": "A.KOYNTOYPIΩTH159",
+      "phone": "2831021115",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-τεταρτη-08:00-12",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Στεφανάκη Ελένη)",
+      "name": "IAHΣIONΣINEMA\"∏IANTEAHΣ ∑TEOANAKHEAENH NIETANAΔIKA",
+      "address": "TZ.MNOYNIAAH33 33TZ.MPOUNIALISTR",
+      "phone": "2831052474",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "17.08-τεταρτη-21:00-13",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΤΕΤΑΡΤΗ 21:00-08:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "ATZN IΣΩAГОTОΔAXЕIO KYPIAKH",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "garbage",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "17.08-κυριακη-08:00-14",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Μαγγανιώτης Σταμάτης)",
+      "name": "MAFTANIΩTHΣ",
+      "address": "AT.ΣIKEAIANOY7",
+      "phone": "2831027828",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-κυριακη-08:00-15",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Παναγάτου Φιλοθέη)",
+      "name": "ATEIAAГIOYГEPГIOY KAWΛIOEA IANAГATОY IAHΣIONABBAΣIΛОOYAОY ENANTI-TPOXOY",
+      "address": "EMM.∏IAXΛA86",
+      "phone": "2831023344",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-κυριακη-21:00-16",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΚΥΡΙΑΚΗ 21:00-08:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "AATZANH IΣΩAГОTОΔHMAPXЕIO MEPIΩNΘAAVAΡΤÀΤΑΙΚAΙΣТΗΝΙΣΤΟΣΕΛIΔΑΤ",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "17.08-πεμπτη-08:00-17",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΠΕΜΠΤΗ 08:00-21:00 (pre-fill parse; catalog: Φραγκιαδάκης Δημήτριος & Φραγκιαδάκη Ειρήνη ΟΕ)",
+      "name": "OPAГKIAΛAKHΣ KOAΩNAKI",
+      "address": "AΣKOYTΣH2",
+      "phone": "2831025813",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-πεμπτη-21:00-18",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΠΕΜΠΤΗ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "AAONOMHAH KATΩAOΔIAГNΩΣTIKO EГKEΦAAOΣ AEYTEPA",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-δευτερα-08:00-19",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Χατζιδάκι Αγγελική)",
+      "name": "XATZIAAKIAFTEAIKH",
+      "address": "TPANTAMAIΔOY24",
+      "phone": "2831026519",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "17.08-δευτερα-08:00-20",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Δαμβακεράκης / Τσιομπίκας Γρηγόριος)",
+      "name": "ENANTINOΣOKOMEIOY AAMBAKEPAKHΣ ΔIAΣTOT.E.I.EPIBOAIA",
+      "address": "EMMANOYHAIAXAA33 33EMM.PAHLASTR",
+      "phone": "2831054706",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "17.08-δευτερα-21:00-21",
+      "source": "corpus",
+      "provenance": "17.08.2026-24.08.2026_page-0001, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "APANAAKH",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-δευτερα-08:00-1",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Χατζιδάκι Αγγελική)",
+      "name": "XATZIAAKIAFTEAIKH",
+      "address": "TPANTAMΛIΔOY24",
+      "phone": "2831026519",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-δευτερα-08:00-2",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Δαμβακεράκης / Τσιομπίκας Γρηγόριος)",
+      "name": "ENANTINOΣOKOMEIOY AAMBAKEPAKHΣ ΔINAΣTOT.E.I.EPIBОAIA",
+      "address": "EMMANOYHAIAXAA33 33EMM.PAHLASTR",
+      "phone": "2831054706",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-δευτερα-21:00-3",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "APANAAKH ∏IAPAΣKEYH",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-παρασκευη-08:00-4",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΠΑΡΑΣΚΕΥΗ 08:00-21:00 (pre-fill parse; catalog: Παπατζανή Μαρία)",
+      "name": "ZN IΣΩAОTОΔMAPXЕIO",
+      "address": "FEPAKAPH96 96GERAKARISTR",
+      "phone": "2831023347",
+      "name_quality": "garbage",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-παρασκευη-21:00-5",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΠΑΡΑΣΚΕΥΗ 21:00-08:00 (pre-fill parse; catalog: Αλεφαντινού Μαρία)",
+      "name": "AAEΦANTINOY ENANTIKΛ.AΣKAHIOΣ AΓANΗΤOIΜAÇΣUΜNOΛIΤΕΘAΘΛAΜΕVA",
+      "address": "ZAMNEAIOY19 19ZAMPELIOYSTR",
+      "phone": "2831026115",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-τριτη-08:00-6",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΤΡΙΤΗ 08:00-21:00 (pre-fill parse; catalog: Κυμιωνή)",
+      "name": "KYMIΩNH",
+      "address": "EON.ANTIΣTAΣEΩΣ26-28",
+      "phone": "2831052192",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-τριτη-21:00-7",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΤΡΙΤΗ 21:00-08:00 (pre-fill parse; catalog: Φραγκιαδάκης Δημήτριος & Φραγκιαδάκη Ειρήνη ΟΕ)",
+      "name": "PAГKIAΛAKHΣ KOAΩNAKI ∑ABBATO",
+      "address": "AΣKOYTΣH2",
+      "phone": "2831025813",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-σαββατο-08:00-8",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Δραμιτινού Γεωργία)",
+      "name": "APAMITINOY",
+      "address": "X.ΔAΣKAΛAKH5",
+      "phone": "2831023026",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-σαββατο-08:00-9",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΣΑΒΒΑΤΟ 08:00-21:00 (pre-fill parse; catalog: Στεφανάκη Όλγα)",
+      "name": "∑TОΔPООΛ.AΣAIОΣ ∑TEOANAKHOAГA ENANTINOΣOKOMEIOY",
+      "address": "TPANTAMAIΔOY28",
+      "phone": "2831028283",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-σαββατο-21:00-10",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΣΑΒΒΑΤΟ 21:00-08:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "ΔAONOMHAH KATΩAГOΔIAГNΩΣTIKO ETKEΦAΛOΣ AΕΜΕΡΣΟΥΜΕΤΙΤОΡΡАΜΜАТΩΝEΦ",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-τεταρτη-08:00-11",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Θωμαδάκη Ιωάννα)",
+      "name": "OΩMAAAKH",
+      "address": "HF.FABPIHA29 29IG.GAVRIILSTR",
+      "phone": "2831028366",
+      "name_quality": "clean",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-τεταρτη-08:00-12",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΤΕΤΑΡΤΗ 08:00-21:00 (pre-fill parse; catalog: Δαφνομήλη Γεωργία)",
+      "name": "ENANTIΔHMOTIKOYKHOY ΔAONOMHAH KATΩAOΔIAГNΩΣTIKO EГKEΦAΛOΣ",
+      "address": "ΔHMOKPATIAΣ6",
+      "phone": "2831056850",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-τεταρτη-21:00-13",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΤΕΤΑΡΤΗ 21:00-08:00 (pre-fill parse; catalog: Καλοειδά - Βαρδιάμπαση Ελένη)",
+      "name": "KAAOEIAA AОΔОΣAООATΣОYPО∑ KYPIAKH",
+      "address": "ΔHMOKPATIAΣ9 ΔHMAPXEIO-2OΔHMOTIKO",
+      "phone": "2831024198",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-κυριακη-08:00-14",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Κολέλης Κωνσταντίνος)",
+      "name": "KOAEAHΣ",
+      "address": "A.EMM.IOPTAAIOY21 21EMM.PORTALIOUSTR",
+      "phone": "2831050348",
+      "name_quality": "clean",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-κυριακη-08:00-15",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΚΥΡΙΑΚΗ 08:00-21:00 (pre-fill parse; catalog: Σπαντιδάκης Ιωσήφ)",
+      "name": "ENANTIMOKAKAMΛIOEAΣ ΣIIANTIAAKH",
+      "address": "ΠA.4ΩNMAPTYPΩN",
+      "phone": "2831023666",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-κυριακη-21:00-16",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΚΥΡΙΑΚΗ 21:00-08:00 (pre-fill parse; catalog: Αλεφαντινού Μαρία)",
+      "name": "AAEOANTINOY ENANTIKΛ.AΣKAHIOΣ MEPIΩNΘAAVAΡΤÀΤΑΙΚAΙΣТΗΝΙΣΤΟΣΕΛIΔΑΤ",
+      "address": "ZAMNEAIOY19 19ZAMPELIOYSTR",
+      "phone": "2831026115",
+      "name_quality": "polluted",
+      "address_quality": "polluted"
+    },
+    {
+      "id": "24.08-πεμπτη-08:00-17",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΠΕΜΠΤΗ 08:00-21:00 (pre-fill parse; catalog: Παγώνη Αλ. Ευγενία)",
+      "name": "DATONH ΔIAΣTООAYΔIО",
+      "address": "MOATΣOY33",
+      "phone": "2831024158",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-πεμπτη-21:00-18",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΠΕΜΠΤΗ 21:00-08:00 (pre-fill parse; catalog: Κούνουπας Ανδρέας)",
+      "name": "KOYNOYIIAΣ ATEIAMHTPOOAEΣ AEYTEPA",
+      "address": "MANIOYΔAKH17",
+      "phone": "2831022420",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-δευτερα-08:00-19",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Μπροκαλάκη Ζαχαρένια / Περιστεράκη Τερέζα)",
+      "name": "ЕIΣTЕA(PОA)",
+      "address": "KOYMOYNΔOYPOY2",
+      "phone": "2831025123",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-δευτερα-08:00-20",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 08:00-21:00 (pre-fill parse; catalog: Βανδώρου Άννα / Πρινιωτάκης Ηλίας - Παναγιώτης)",
+      "name": "ΔIAΣTОBARRIO-KHОΣ IPINIΩTAKHΣHAIA∑ A∩ENANTIAГOTHΔEH",
+      "address": "A.KOYNTOYPIΩTH81",
+      "phone": "2831027264",
+      "name_quality": "polluted",
+      "address_quality": "clean"
+    },
+    {
+      "id": "24.08-δευτερα-21:00-21",
+      "source": "corpus",
+      "provenance": "24.08.2026-31.08.2026_page-0001, ΔΕΥΤΕΡΑ 21:00-08:00 (pre-fill parse; catalog: Δρανδάκη - Λιάσκος)",
+      "name": "AIAΣKOΣ",
+      "address": "APKAΔIOY92",
+      "phone": "2831028795",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-clean-1",
+      "source": "synthetic",
+      "provenance": "catalog name/address in the schedule's Greek script",
+      "name": "ΚΑΛΟΓΕΡΑΚΗΣ ΙΩΑΝΝΗΣ",
+      "address": "Αρκάδιου 92",
+      "phone": "2831028795",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-clean-2",
+      "source": "synthetic",
+      "provenance": "catalog content with the recognizer look-alikes observed in raw_ocr",
+      "name": "KAAOFEPAKHΣ IΩANNHΣ",
+      "address": "A.KOYNTOYPIΩTH 81",
+      "phone": "2831027264",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-clean-3",
+      "source": "synthetic",
+      "provenance": "clean catalog entry, the phone-misread scenario",
+      "name": "ΠΑΠΑΤΖΑΝΗ ΜΑΡΙΑ",
+      "address": "Γερακάρη 96",
+      "phone": "2831023347",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-clean-4",
+      "source": "synthetic",
+      "provenance": "raw_ocr name (Χατζηδάκη-Αυγελή) with a clean address",
+      "name": "XATZIAAKIAFTEAIKH",
+      "address": "TPANTAMΛIΔOY 24",
+      "phone": "2831054706",
+      "name_quality": "clean",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-phone",
+      "source": "synthetic",
+      "provenance": "raw_ocr phone line placed in the name field",
+      "name": "THΛ.2831023347",
+      "address": "Γερακάρη 96",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-time",
+      "source": "synthetic",
+      "provenance": "raw_ocr shift line placed in the name field",
+      "name": "08:00-21:00",
+      "address": "Αρκάδιου 92",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-day",
+      "source": "synthetic",
+      "provenance": "raw_ocr day header placed in the name field",
+      "name": "AEYTEPA",
+      "address": "Δημοκρατίας 6",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-title",
+      "source": "synthetic",
+      "provenance": "raw_ocr table title placed in the name field",
+      "name": "PОГPAAEI PIΩNΦAPMAKEIΩN",
+      "address": "Εμμ. Παχλά 33",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-latin",
+      "source": "synthetic",
+      "provenance": "raw_ocr Latin transliteration placed in the name field",
+      "name": "96GERAKARISTR.",
+      "address": "Γερακάρη 96",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-name-desc",
+      "source": "synthetic",
+      "provenance": "raw_ocr location description placed in the name field",
+      "name": "ENANTIΣABOIΔAKH",
+      "address": "Μαρκουπόταλίου 20",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "clean"
+    },
+    {
+      "id": "syn-g-addr-phone",
+      "source": "synthetic",
+      "provenance": "raw_ocr phone line placed in the address field",
+      "name": "Καλογεράκης Ιωάννης",
+      "address": "THΛ.2831023347",
+      "phone": "",
+      "name_quality": "clean",
+      "address_quality": "garbage"
+    },
+    {
+      "id": "syn-g-addr-time",
+      "source": "synthetic",
+      "provenance": "raw_ocr shift line placed in the address field",
+      "name": "Καλογεράκης Ιωάννης",
+      "address": "21:00-08:00",
+      "phone": "",
+      "name_quality": "clean",
+      "address_quality": "garbage"
+    },
+    {
+      "id": "syn-g-addr-day",
+      "source": "synthetic",
+      "provenance": "raw_ocr day header placed in the address field",
+      "name": "Καλογεράκης Ιωάννης",
+      "address": "AEYTEPA",
+      "phone": "",
+      "name_quality": "clean",
+      "address_quality": "garbage"
+    },
+    {
+      "id": "syn-g-addr-date",
+      "source": "synthetic",
+      "provenance": "raw_ocr date line placed in the address field",
+      "name": "Καλογεράκης Ιωάννης",
+      "address": "10/08/2026",
+      "phone": "",
+      "name_quality": "clean",
+      "address_quality": "garbage"
+    },
+    {
+      "id": "syn-g-addr-name",
+      "source": "synthetic",
+      "provenance": "raw_ocr pharmacy name placed in the address field",
+      "name": "Καλογεράκης Ιωάννης",
+      "address": "KEPAMIANAKH",
+      "phone": "",
+      "name_quality": "clean",
+      "address_quality": "garbage"
+    },
+    {
+      "id": "syn-g-both",
+      "source": "synthetic",
+      "provenance": "raw_ocr phone and shift lines as the whole entry",
+      "name": "THΛ.2831023347",
+      "address": "08:00-21:00",
+      "phone": "",
+      "name_quality": "garbage",
+      "address_quality": "garbage"
+    }
+  ]
+}

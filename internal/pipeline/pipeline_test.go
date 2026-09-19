@@ -80,6 +80,23 @@ func sharedWorker(t *testing.T, modelsDir string) *ocr.Remote {
 
 func loadSchedule(t *testing.T, path, modelsDir string) *pipeline.Result {
 	t.Helper()
+	res := runSchedule(t, path, modelsDir)
+	refs, err := validate.LoadReference(validate.ReferenceJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pipeline.FillFromCatalog(&res.Schedule, refs)
+	vals, warnings := pipeline.ValidateResult(&res.Schedule, refs)
+	res.Validations = vals
+	res.Warnings = warnings
+	pipeline.ApplyValidation(&res.Schedule, vals)
+	return res
+}
+
+// runSchedule runs the OCR pipeline without the catalog fill, so callers can
+// inspect the fields exactly as the parser produced them.
+func runSchedule(t *testing.T, path, modelsDir string) *pipeline.Result {
+	t.Helper()
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Skipf("image not present: %v", err)
@@ -94,16 +111,46 @@ func loadSchedule(t *testing.T, path, modelsDir string) *pipeline.Result {
 	if err != nil {
 		t.Fatal(err)
 	}
-	refs, err := validate.LoadReference(validate.ReferenceJSON)
+	return res
+}
+
+// TestDumpPrefillCorpus writes the parsed schedule BEFORE the catalog fill for
+// every checked-in schedule image. It is a diagnostic, not an assertion: run
+// it inside the Docker image with PREFILL_DUMP set to regenerate the dataset
+// behind the plausibility experiment (internal/adjudicate/testdata/
+// plausibility_corpus.json, TYPESAFE_EVALUATION.md §3D). The pre-fill fields
+// are what a consumer sees when the phone number does not match the catalog.
+//
+//	docker run --rm -v $PWD:/data -w /data rethymno-emergency-pharmacy:dev \
+//	  go test ./internal/pipeline -run TestDumpPrefillCorpus -v
+func TestDumpPrefillCorpus(t *testing.T) {
+	dir := os.Getenv("PREFILL_DUMP")
+	if dir == "" {
+		t.Skip("set PREFILL_DUMP=<dir> to write the pre-fill schedules")
+	}
+	modelsDir := modelsDir(t)
+	if _, err := os.Stat(modelsDir); err != nil {
+		t.Skip("models not present")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	images, err := filepath.Glob(repoRoot(t) + "/testdata/schedules/*.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
-	pipeline.FillFromCatalog(&res.Schedule, refs)
-	vals, warnings := pipeline.ValidateResult(&res.Schedule, refs)
-	res.Validations = vals
-	res.Warnings = warnings
-	pipeline.ApplyValidation(&res.Schedule, vals)
-	return res
+	for _, image := range images {
+		res := runSchedule(t, image, modelsDir)
+		out, err := json.MarshalIndent(res.Schedule, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		name := strings.TrimSuffix(filepath.Base(image), ".jpg") + ".json"
+		if err := os.WriteFile(filepath.Join(dir, name), out, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("wrote %s (%d days)", filepath.Join(dir, name), len(res.Schedule.Days))
+	}
 }
 
 // repoRoot finds the repository root from the test working directory.
