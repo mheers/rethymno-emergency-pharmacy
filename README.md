@@ -145,7 +145,13 @@ both judges share the one `--judge-cache`. With
 identity adjudication.
 
 This is the one code path that leaves the machine: it is
-opt-in, default off, and sends only OCR text of public pharmacy data.
+opt-in, default off, and sends only OCR text of public pharmacy data. The
+System One calls go through the community `jev-go` SDK
+(`github.com/mheers/typesafeai-systemone-jev-go`); `internal/adjudicate` layers
+the identity and plausibility judgments on top. Besides `TYPESAFE_API_KEY`, the
+SDK honors `TYPESAFE_BASE_URL`, `TYPESAFE_DEFAULT_MODEL` and
+`TYPESAFE_LOG_LEVEL`; an explicitly configured model (`--judge-model`,
+`IdentityJudgeConfig.Model`) wins.
 
 ### HTTP API
 
@@ -250,7 +256,7 @@ host binary must expose an `ocr-worker` subcommand (see above), or set
 ```
 cmd/rethymno-emergency-pharmacy/     CLI (ingest, parse, inspect, benchmark, serve)
 cmd/merge-golden/                    one-off merge of the Google-enriched golden catalog into the reference
-internal/adjudicate/  TypeSafe System One client, catalog-identity adjudicator, decision cache
+internal/adjudicate/  TypeSafe System One judgments (jev-go SDK), decision cache
 internal/server/      internal HTTP API: TTL cache, midnight refresh
 internal/fetch/       HTTP download of the FSKriti schedule page
 internal/extract/     schedule-image detection and week selection

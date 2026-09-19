@@ -48,6 +48,7 @@ import (
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/pipeline"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/validate"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/vision"
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 // Options configures a pipeline run.
@@ -282,8 +283,10 @@ func buildIdentityJudge(cfg *IdentityJudgeConfig, openCache func(string) (*adjud
 	if model == "" {
 		model = adjudicate.DefaultJudgeModel
 	}
-	client := adjudicate.NewClient(key)
-	client.Model = model
+	client, err := adjudicate.NewClient(key, jev.WithModel(model))
+	if err != nil {
+		return nil, adjudicate.IdentityConfig{}, fmt.Errorf("rethymnoemergency: identity adjudication client: %w", err)
+	}
 	cache, err := openCache(cfg.CachePath)
 	if err != nil {
 		return nil, adjudicate.IdentityConfig{}, fmt.Errorf("rethymnoemergency: identity decision cache: %w", err)
@@ -318,8 +321,10 @@ func buildPlausibilityJudge(cfg *PlausibilityJudgeConfig, openCache func(string)
 	if model == "" {
 		model = adjudicate.DefaultJudgeModel
 	}
-	client := adjudicate.NewClient(key)
-	client.Model = model
+	client, err := adjudicate.NewClient(key, jev.WithModel(model))
+	if err != nil {
+		return nil, adjudicate.PlausibilityConfig{}, fmt.Errorf("rethymnoemergency: plausibility adjudication client: %w", err)
+	}
 	cache, err := openCache(cfg.CachePath)
 	if err != nil {
 		return nil, adjudicate.PlausibilityConfig{}, fmt.Errorf("rethymnoemergency: plausibility decision cache: %w", err)

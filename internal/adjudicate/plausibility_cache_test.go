@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"testing"
+
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 // TestCachedPlausibilityJudgeServesDecisions verifies the runtime path:
@@ -29,9 +31,7 @@ func TestCachedPlausibilityJudgeServesDecisions(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
-	client.Model = "jev-test"
+	client := newTestClient(t, srv.URL, "jev-test")
 	cachePath := filepath.Join(t.TempDir(), "decisions.json")
 	cache, err := OpenDecisionCache(cachePath)
 	if err != nil {
@@ -112,8 +112,7 @@ func TestCachedPlausibilityJudgeEmptyFields(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
+	client := newTestClient(t, srv.URL, "jev-test")
 	cache, err := OpenDecisionCache(filepath.Join(t.TempDir(), "decisions.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -219,11 +218,10 @@ func TestCachedPlausibilityJudgeLive(t *testing.T) {
 	if os.Getenv("TYPESAFE_EXPERIMENT") == "" {
 		t.Skip("set TYPESAFE_EXPERIMENT=1 to run the live TypeSafe experiment")
 	}
-	client, err := NewClientFromEnv()
+	client, err := NewClientFromEnv(jev.WithModel(DefaultJudgeModel))
 	if err != nil {
 		t.Skipf("live experiment unavailable: %v", err)
 	}
-	client.Model = DefaultJudgeModel
 	cachePath := filepath.Join(t.TempDir(), "decisions.json")
 	cache, err := OpenDecisionCache(cachePath)
 	if err != nil {

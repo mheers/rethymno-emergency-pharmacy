@@ -121,15 +121,15 @@ func (c *Client) AdjudicatePlausibility(ctx context.Context, entries []Plausibil
 			AddressPlausible: -1,
 		}
 		if entries[ei].Name != "" {
-			answer, ok := resp.Answers[fmt.Sprintf("e%d_name_plausible", ei)]
-			if !ok || answer.Type != "noul" {
+			answer, ok := resp.Noul(fmt.Sprintf("e%d_name_plausible", ei))
+			if !ok {
 				return nil, resp, fmt.Errorf("adjudicate: missing noul answer e%d_name_plausible", ei)
 			}
 			v.NamePlausible = answer.Noul
 		}
 		if entries[ei].Address != "" {
-			answer, ok := resp.Answers[fmt.Sprintf("e%d_address_plausible", ei)]
-			if !ok || answer.Type != "noul" {
+			answer, ok := resp.Noul(fmt.Sprintf("e%d_address_plausible", ei))
+			if !ok {
 				return nil, resp, fmt.Errorf("adjudicate: missing noul answer e%d_address_plausible", ei)
 			}
 			v.AddressPlausible = answer.Noul

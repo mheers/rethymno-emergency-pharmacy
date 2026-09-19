@@ -1,4 +1,6 @@
 github.com/hybridgroup/mjpeg v0.0.0-20140228234708-4680f319790e/go.mod h1:eagM805MRKrioHYuU7iKLUyFPVKqVV6um5DAvCkUtXs=
+github.com/mheers/typesafeai-systemone-jev-go v0.1.0 h1:6EV5Ixxq5OWJmWArN0IO9S+ClmP07vWsOn9ZrDEvv5I=
+github.com/mheers/typesafeai-systemone-jev-go v0.1.0/go.mod h1:YSCsmsW25r2jMgQYWuJ8fku4NW+xktXtpR4de0JgF0A=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/yalue/onnxruntime_go v1.24.0 h1:IdgJLxxyotlsUTmL1UnHZgBzXJGgY51LZ4vQ5rZeOXU=
 github.com/yalue/onnxruntime_go v1.24.0/go.mod h1:b4X26A8pekNb1ACJ58wAXgNKeUCGEAQ9dmACut9Sm/4=

@@ -72,7 +72,7 @@ func (o MergeOutcome) MarshalJSON() ([]byte, error) {
 
 // MergeLevels are the Score levels, in order. They are the entire decision;
 // code only rounds the probability-weighted score to the nearest level.
-var MergeLevels = []string{
+var MergeLevels = []any{
 	"They describe two different pharmacies.",
 	"They may describe the same pharmacy, but the evidence is incomplete or conflicting, or the names differ enough that they could also refer to a different business; a person should decide.",
 	"They describe one and the same pharmacy.",
@@ -172,8 +172,8 @@ func (c *Client) AdjudicateMerge(ctx context.Context, groups []MergeGroup, cfg M
 		for ri := range g.References {
 			for ci, cand := range g.Candidates {
 				base := fmt.Sprintf("g%d_r%d_c%d", gi, ri, ci)
-				link, ok := resp.Answers[base+"_link_state"]
-				if !ok || link.Type != "score" {
+				link, ok := resp.Score(base + "_link_state")
+				if !ok {
 					return nil, resp, fmt.Errorf("adjudicate: missing score answer %s_link_state", base)
 				}
 				v := PairVerdict{
@@ -186,10 +186,10 @@ func (c *Client) AdjudicateMerge(ctx context.Context, groups []MergeGroup, cfg M
 					SameName:    -1,
 					SameAddress: -1,
 				}
-				if a, ok := resp.Answers[base+"_same_name"]; ok && a.Type == "noul" {
+				if a, ok := resp.Noul(base + "_same_name"); ok {
 					v.SameName = a.Noul
 				}
-				if a, ok := resp.Answers[base+"_same_address"]; ok && a.Type == "noul" {
+				if a, ok := resp.Noul(base + "_same_address"); ok {
 					v.SameAddress = a.Noul
 				}
 				verdicts = append(verdicts, v)

@@ -220,8 +220,10 @@ primary tool.
 
 ## 4. Experiment: golden-merge adjudication (2026-09-19)
 
-The C design is implemented: `internal/adjudicate` (the System One client, the
-Score+Noul question builder, score routing) and `cmd/merge-golden`, where
+The C design is implemented: `internal/adjudicate` (the Score+Noul question
+builder and score routing; the System One client itself is the community
+`github.com/mheers/typesafeai-systemone-jev-go` SDK) and `cmd/merge-golden`,
+where
 adjudication is on by default (`-judge=false` forces the deterministic path)
 and `-judge-strict` refuses to write the catalog while curator decisions or
 judge fallbacks are unresolved. The similarity thresholds remain the fallback
@@ -530,9 +532,11 @@ confidence formula stays untouched (wired in §7).
   request run in parallel, and the server OCRs at most once a day — so call
   volume is negligible. Adding questions still costs tokens; measure rather than
   assume.
-- **Integration.** No official Go SDK: `POST /v1/systemone` with a Bearer key
-  kept server-side. A small internal package (`internal/adjudicate`) with an
-  interface makes the judgments fakeable in tests and keeps the parser pure.
+- **Integration.** The API is spoken by the community Go SDK
+  `github.com/mheers/typesafeai-systemone-jev-go` (typed questions and answers,
+  retries, typed errors). `internal/adjudicate` pins the client's transport
+  settings — 120 s per attempt, three retries honoring Retry-After — and layers
+  the judgments on top; they stay fakeable in tests and the parser stays pure.
 
 ## 7. Recommended path
 

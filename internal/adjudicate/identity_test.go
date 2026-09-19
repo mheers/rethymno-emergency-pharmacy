@@ -123,7 +123,10 @@ func TestAdjudicateIdentityAgainstFakeServer(t *testing.T) {
 				"g0_c0_same_pharmacy": map[string]any{"type": "noul", "noul": 0.05},
 				"g0_c1_same_pharmacy": map[string]any{"type": "noul", "noul": 0.96},
 				// case-insensitive answers
-				"g1_identity":         map[string]any{"type": "choice", "choice": "NONE", "confidence": 0.7},
+				"g1_identity": map[string]any{
+					"type": "choice", "choice": "NONE", "confidence": 0.7,
+					"probabilities": map[string]float64{"none": 0.7, "c0": 0.2, "c1": 0.1},
+				},
 				"g1_c0_same_pharmacy": map[string]any{"type": "noul", "noul": 0.2},
 				"g1_c1_same_pharmacy": map[string]any{"type": "noul", "noul": 0.1},
 			},
@@ -132,9 +135,7 @@ func TestAdjudicateIdentityAgainstFakeServer(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
-	client.Model = "jev-test"
+	client := newTestClient(t, srv.URL, "jev-test")
 
 	groups := []IdentityGroup{
 		{
@@ -226,14 +227,20 @@ func TestAdjudicateIdentityRejectsBadAnswers(t *testing.T) {
 		{
 			name: "unknown choice",
 			answers: map[string]any{
-				"g0_identity":         map[string]any{"type": "choice", "choice": "candidate-a", "confidence": 0.9},
+				"g0_identity": map[string]any{
+					"type": "choice", "choice": "candidate-a", "confidence": 0.9,
+					"probabilities": map[string]float64{"candidate-a": 0.9},
+				},
 				"g0_c0_same_pharmacy": map[string]any{"type": "noul", "noul": 0.9},
 			},
 		},
 		{
 			name: "choice out of range",
 			answers: map[string]any{
-				"g0_identity":         map[string]any{"type": "choice", "choice": "c7", "confidence": 0.9},
+				"g0_identity": map[string]any{
+					"type": "choice", "choice": "c7", "confidence": 0.9,
+					"probabilities": map[string]float64{"c7": 0.9},
+				},
 				"g0_c0_same_pharmacy": map[string]any{"type": "noul", "noul": 0.9},
 			},
 		},
@@ -259,8 +266,7 @@ func TestAdjudicateIdentityRejectsBadAnswers(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			client := NewClient("test-key")
-			client.BaseURL = srv.URL
+			client := newTestClient(t, srv.URL, "jev-test")
 			groups := []IdentityGroup{{
 				Reading:    IdentityReading{Name: "X", Phone: "2831055212"},
 				Candidates: []IdentityCandidate{{ID: "a", Name: "A"}, {ID: "b", Name: "B"}},

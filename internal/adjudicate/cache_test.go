@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"testing"
+
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 func testIdentityGroup(reading string) IdentityGroup {
@@ -124,11 +126,10 @@ func TestCachedJudgeLive(t *testing.T) {
 	if os.Getenv("TYPESAFE_EXPERIMENT") == "" {
 		t.Skip("set TYPESAFE_EXPERIMENT=1 to run the live TypeSafe experiment")
 	}
-	client, err := NewClientFromEnv()
+	client, err := NewClientFromEnv(jev.WithModel(DefaultJudgeModel))
 	if err != nil {
 		t.Skipf("live experiment unavailable: %v", err)
 	}
-	client.Model = DefaultJudgeModel
 	cachePath := filepath.Join(t.TempDir(), "decisions.json")
 	cache, err := OpenDecisionCache(cachePath)
 	if err != nil {
@@ -174,7 +175,10 @@ func TestCachedJudgeServesDecisions(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"model": "jev-test",
 			"answers": map[string]any{
-				"g0_identity":         map[string]any{"type": "choice", "choice": "c1", "confidence": 0.9},
+				"g0_identity": map[string]any{
+					"type": "choice", "choice": "c1", "confidence": 0.9,
+					"probabilities": map[string]float64{"c0": 0.05, "c1": 0.9, "none": 0.05},
+				},
 				"g0_c0_same_pharmacy": map[string]any{"type": "noul", "noul": 0.1},
 				"g0_c1_same_pharmacy": map[string]any{"type": "noul", "noul": 0.95},
 			},
@@ -188,9 +192,7 @@ func TestCachedJudgeServesDecisions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cache: %v", err)
 	}
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
-	client.Model = "jev-test"
+	client := newTestClient(t, srv.URL, "jev-test")
 	judge := NewCachedJudge(client, cache)
 	cfg := IdentityConfig{MinConfidence: 0.8, MinSamePharmacy: 0.8}
 	ctx := context.Background()

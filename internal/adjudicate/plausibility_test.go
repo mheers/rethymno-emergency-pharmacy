@@ -100,9 +100,7 @@ func TestAdjudicatePlausibilityAgainstFakeServer(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
-	client.Model = "jev-test"
+	client := newTestClient(t, srv.URL, "jev-test")
 
 	entries := []PlausibilityEntry{
 		{Name: "ΠΑΠΑΤΖΑΝΗ ΜΑΡΙΑ", Address: "Γερακάρη 96", Phone: "2831023347"},
@@ -168,7 +166,10 @@ func TestAdjudicatePlausibilityRejectsBadAnswers(t *testing.T) {
 		{
 			name: "wrong answer type",
 			answers: map[string]any{
-				"e0_name_plausible": map[string]any{"type": "choice", "choice": "c0", "confidence": 0.9},
+				"e0_name_plausible": map[string]any{
+					"type": "choice", "choice": "c0", "confidence": 0.9,
+					"probabilities": map[string]float64{"c0": 0.9},
+				},
 			},
 		},
 	}
@@ -183,8 +184,7 @@ func TestAdjudicatePlausibilityRejectsBadAnswers(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			client := NewClient("test-key")
-			client.BaseURL = srv.URL
+			client := newTestClient(t, srv.URL, "jev-test")
 			if _, _, err := client.AdjudicatePlausibility(context.Background(), []PlausibilityEntry{{Name: "X"}}); err == nil {
 				t.Fatal("expected an error")
 			}
@@ -193,7 +193,10 @@ func TestAdjudicatePlausibilityRejectsBadAnswers(t *testing.T) {
 }
 
 func TestAdjudicatePlausibilityValidation(t *testing.T) {
-	client := NewClient("test-key")
+	client, err := NewClient("test-key")
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
 	if _, _, err := client.AdjudicatePlausibility(context.Background(), nil); err == nil {
 		t.Error("no entries: expected an error")
 	}

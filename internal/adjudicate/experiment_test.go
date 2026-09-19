@@ -12,6 +12,7 @@ import (
 
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/normalize"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/validate"
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 // TestMergeAdjudicationExperiment runs the live TypeSafe merge experiment.
@@ -30,14 +31,13 @@ func TestMergeAdjudicationExperiment(t *testing.T) {
 	if os.Getenv("TYPESAFE_EXPERIMENT") == "" {
 		t.Skip("set TYPESAFE_EXPERIMENT=1 to run the live TypeSafe experiment")
 	}
-	client, err := NewClientFromEnv()
+	model := os.Getenv("TYPESAFE_EXPERIMENT_MODEL")
+	if model == "" {
+		model = jev.ModelJev1130
+	}
+	client, err := NewClientFromEnv(jev.WithModel(model))
 	if err != nil {
 		t.Skipf("live experiment unavailable: %v", err)
-	}
-	if v := os.Getenv("TYPESAFE_EXPERIMENT_MODEL"); v != "" {
-		client.Model = v
-	} else {
-		client.Model = "jev-1.13.0"
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
@@ -47,7 +47,7 @@ func TestMergeAdjudicationExperiment(t *testing.T) {
 		t.Fatalf("load reference catalog: %v", err)
 	}
 	cases := buildExperimentCases(t, refs)
-	t.Logf("model %s; %d cases", client.Model, len(cases))
+	t.Logf("model %s; %d cases", client.Model(), len(cases))
 
 	// ---- arm A: one request per case (Score + Nouls) ----
 	armA := make([]armResult, len(cases))

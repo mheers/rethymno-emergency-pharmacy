@@ -136,8 +136,8 @@ func (c *Client) AdjudicateIdentity(ctx context.Context, groups []IdentityGroup,
 
 	verdicts := make([]IdentityVerdict, 0, len(groups))
 	for gi, g := range groups {
-		answer, ok := resp.Answers[fmt.Sprintf("g%d_identity", gi)]
-		if !ok || answer.Type != "choice" {
+		answer, ok := resp.Choice(fmt.Sprintf("g%d_identity", gi))
+		if !ok {
 			return nil, resp, fmt.Errorf("adjudicate: missing choice answer g%d_identity", gi)
 		}
 		v := IdentityVerdict{
@@ -159,7 +159,7 @@ func (c *Client) AdjudicateIdentity(ctx context.Context, groups []IdentityGroup,
 		default:
 			v.Choice = g.Candidates[index].ID
 			key := identityOptionKey(index)
-			if noul, ok := resp.Answers[fmt.Sprintf("g%d_%s_same_pharmacy", gi, key)]; ok && noul.Type == "noul" {
+			if noul, ok := resp.Noul(fmt.Sprintf("g%d_%s_same_pharmacy", gi, key)); ok {
 				v.SamePharmacy = noul.Noul
 			}
 		}

@@ -34,7 +34,7 @@ func NewCachedPlausibilityJudge(client *Client, cache *DecisionCache) *CachedPla
 
 // Model reports the pinned model the judge calls.
 func (j *CachedPlausibilityJudge) Model() string {
-	return j.client.model()
+	return j.client.Model()
 }
 
 // AdjudicatePlausibility serves cached verdicts and evaluates misses, one
@@ -44,7 +44,7 @@ func (j *CachedPlausibilityJudge) AdjudicatePlausibility(ctx context.Context, en
 	if len(entries) == 0 {
 		return nil, errors.New("adjudicate: no plausibility entries")
 	}
-	model := j.client.model()
+	model := j.client.Model()
 	verdicts := make([]PlausibilityVerdict, len(entries))
 	for i, e := range entries {
 		unasked := PlausibilityVerdict{Entry: i, NamePlausible: -1, AddressPlausible: -1}

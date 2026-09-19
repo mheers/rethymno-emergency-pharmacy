@@ -35,6 +35,7 @@ import (
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/adjudicate"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/normalize"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/validate"
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 // goldenCatalog mirrors the expat-map-guide enrichment output envelope. Only
@@ -142,7 +143,11 @@ func main() {
 	var judgeClient *adjudicate.Client
 	var judgeDisabled string
 	if judge {
-		client, err := adjudicate.NewClientFromEnv()
+		opts := []jev.Option{}
+		if judgeModel != "" {
+			opts = append(opts, jev.WithModel(judgeModel))
+		}
+		client, err := adjudicate.NewClientFromEnv(opts...)
 		if err != nil {
 			if judgeStrict {
 				fmt.Fprintf(os.Stderr, "-judge-strict requires a working adjudicator: %v\n", err)
@@ -150,9 +155,6 @@ func main() {
 			}
 			judgeDisabled = err.Error()
 		} else {
-			if judgeModel != "" {
-				client.Model = judgeModel
-			}
 			judgeClient = client
 			var cancel context.CancelFunc
 			judgeCtx, cancel = context.WithTimeout(judgeCtx, 5*time.Minute)
@@ -161,7 +163,7 @@ func main() {
 	}
 	report := &judgeReport{Model: judgeModel}
 	if judgeClient != nil {
-		report.Model = judgeClient.Model
+		report.Model = judgeClient.Model()
 	}
 
 	byPhone := map[string][]goldenPharmacy{}

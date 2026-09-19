@@ -54,7 +54,10 @@ These apply to every surface; they are the result of hard-won debugging
    several catalog entries (identity selection) and for entries whose phone
    matches no catalog entry (warnings-only plausibility verification); each
    decision is recorded in a cache file, and determinism is preserved because
-   later runs reuse the recorded decision. `TYPESAFE_API_KEY` is required.
+   later runs reuse the recorded decision. `TYPESAFE_API_KEY` is required; the
+   calls go through the community `jev-go` SDK
+   (`github.com/mheers/typesafeai-systemone-jev-go`), which also honors
+   `TYPESAFE_BASE_URL`, `TYPESAFE_DEFAULT_MODEL` and `TYPESAFE_LOG_LEVEL`.
    Without it the pipeline stays local and CPU-only.
 
 ---

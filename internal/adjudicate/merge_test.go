@@ -45,9 +45,12 @@ func TestAdjudicateMergeAgainstFakeServer(t *testing.T) {
 		bodies = append(bodies, body)
 
 		scoreOnly := !hasQuestion(body, "g0_r0_c0_same_name")
+		legend := map[string]any{"0": MergeLevels[0], "1": MergeLevels[1], "2": MergeLevels[2]}
 		answers := map[string]any{
-			"g0_r0_c0_link_state": map[string]any{"type": "score", "score": 1.92, "confidence": 0.9},
-			"g0_r0_c1_link_state": map[string]any{"type": "score", "score": 0.2, "confidence": 0.9},
+			"g0_r0_c0_link_state": map[string]any{"type": "score", "score": 1.92, "confidence": 0.9,
+				"legend": legend, "probabilities": map[string]float64{"0": 0.01, "1": 0.06, "2": 0.93}},
+			"g0_r0_c1_link_state": map[string]any{"type": "score", "score": 0.2, "confidence": 0.9,
+				"legend": legend, "probabilities": map[string]float64{"0": 0.85, "1": 0.1, "2": 0.05}},
 		}
 		if !scoreOnly {
 			answers["g0_r0_c0_same_name"] = map[string]any{"type": "noul", "noul": 0.96}
@@ -63,9 +66,7 @@ func TestAdjudicateMergeAgainstFakeServer(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewClient("test-key")
-	client.BaseURL = srv.URL
-	client.Model = "jev-test"
+	client := newTestClient(t, srv.URL, "jev-test")
 	groups := []MergeGroup{{
 		References: []MergeRef{{Name: "Βαρούχα - Αναγνωστάκης", Address: "Δημητρακάκη 21", Phone: "2831055212"}},
 		Candidates: []MergeCandidate{

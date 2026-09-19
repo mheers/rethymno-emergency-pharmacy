@@ -12,12 +12,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	jev "github.com/mheers/typesafeai-systemone-jev-go"
 )
 
 // DefaultJudgeModel is the pinned System One model the runtime identity
 // adjudicator was measured with (TYPESAFE_EVALUATION.md §4.1). Re-measure the
 // acceptance gate before changing it.
-const DefaultJudgeModel = "jev-1.13.0"
+const DefaultJudgeModel = jev.ModelJev1130
 
 const cacheVersion = 1
 
@@ -158,7 +160,7 @@ func NewCachedJudge(client *Client, cache *DecisionCache) *CachedJudge {
 
 // Model reports the pinned model the judge calls.
 func (j *CachedJudge) Model() string {
-	return j.client.model()
+	return j.client.Model()
 }
 
 // AdjudicateIdentity serves cached verdicts and evaluates misses, in one
@@ -168,7 +170,7 @@ func (j *CachedJudge) AdjudicateIdentity(ctx context.Context, groups []IdentityG
 	if len(groups) == 0 {
 		return nil, errors.New("adjudicate: no identity groups")
 	}
-	model := j.client.model()
+	model := j.client.Model()
 	verdicts := make([]IdentityVerdict, len(groups))
 	var missIdx []int
 	var missGroups []IdentityGroup
