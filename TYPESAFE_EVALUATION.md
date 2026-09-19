@@ -7,11 +7,13 @@ semantic glue *around* OCR — deciding which catalog entry a garbled reading
 refers to, what a line is, whether a phone-keyed match is trustworthy — is
 currently hand-tuned string heuristics and edit-distance thresholds. Those are
 exactly the decisions System One questions are built for, and they can be added
-behind code that still validates, canonicalises and owns the output. A prototype
-is implemented (`internal/adjudicate`; `cmd/merge-golden` adjudicates by default
-and `-judge=false` forces the deterministic path); §4 measures it against the
-thresholds. The runtime pipeline is unchanged, and this document records the
-evaluation so the work does not have to be re-derived.
+behind code that still validates, canonicalises and owns the output. Two
+prototypes are implemented: `internal/adjudicate` behind `cmd/merge-golden`
+(adjudication on by default, `-judge=false` forces the deterministic path; §4
+measures it) and the catalog-identity adjudicator, measured in §4.1 and wired
+into the runtime behind the opt-in `--judge` flag. The runtime pipeline is
+otherwise unchanged, and this document records the evaluation so the work does
+not have to be re-derived.
 
 - **Date:** 2026-09-19
 - **Model:** `jev-latest` (a concrete version must be pinned for reproducibility)
@@ -58,8 +60,8 @@ catalog entry or reports a probability that code turns into a warning.
 | Location | What it does today | Failure mode |
 |---|---|---|
 | `internal/parse/parse.go:105-207` | Entry segmentation by phone lines (`parseShift`), per-line classification (`looksLikeName`, `looksLikeAddress`, `isJunkLine`, `isPhoneLine`), Greek/Latin address merge | ~200 lines of ordered rules; a missed phone line merges two pharmacies; a misclassified line silently moves into name or address |
-| `internal/validate/validate.go:178-267` | Catalog lookup by phone digits; fuzzy choice among same-phone entries by Levenshtein similarity (`<0.45` warning; `>=0.55` / `>=0.3` match bands) | thresholds are tuned guesses; the wrong pick among candidates is silent |
-| `internal/pipeline/pipeline.go:409-463` | `FillFromCatalog` overwrites name/address and attaches Google details on a phone match; a near-duplicate matcher (`chooseCatalogReference`) does the selection | an OCR phone that mangles into a different *valid* catalog phone rewrites the entry with no similarity gate; after the fill, `ValidateResult` compares the catalog against itself, so the mismatch warning cannot fire |
+| `internal/validate/validate.go:178-283` | Catalog lookup by phone digits; fuzzy choice among same-phone entries by Levenshtein similarity (`<0.45` warning; `>=0.55` / `>=0.3` match bands) | thresholds are tuned guesses; the wrong pick among candidates is silent |
+| `internal/pipeline/pipeline.go:425-477` | `FillFromCatalog` overwrites name/address and attaches Google details on a phone match; `chooseCatalogReference` does the selection | an OCR phone that mangles into a different *valid* catalog phone rewrites the entry with no similarity gate; after the fill, `ValidateResult` compares the catalog against itself, so the mismatch warning cannot fire |
 | `internal/validate/validate.go:122-133, 227-243` | `ValidateAddress` passes any string containing a 1–4 digit run; confidence is a fixed weight formula (`0.35/0.3/0.2/0.05/0.1`) | `"TEPAKAPH96 96GERAKARISTR"` (README example) reaches JSON at `confidence: 0.9` |
 | `cmd/merge-golden/main.go:214, 434-457` | Golden↔reference catalog merge by phone, then name similarity thresholds `0.55` / `0.4` | merge errors are baked into the embedded catalog permanently |
 | `internal/extract/extract.go:41-93` | Schedule-image regex over the FSKriti page; `SelectCurrent` silently falls back to the newest image | page drift or an out-of-range week can serve a plausible-looking wrong week |
@@ -69,8 +71,9 @@ catalog entry or reports a probability that code turns into a warning.
 ### A. Catalog identity adjudication (runtime, opt-in) — highest value
 
 **Today.** A phone lookup can return several catalog entries. Four of the 73
-catalog numbers resolve to two entries each, and every pair shares both the phone
-and the address (renamed or successor businesses at the same premises):
+catalog numbers resolve to two entries each; every pair shares the phone and an
+identical or near-identical address (renamed or successor businesses at the
+same premises):
 
 | Number | Entries |
 |---|---|
@@ -79,9 +82,11 @@ and the address (renamed or successor businesses at the same premises):
 | 2831054706 | Δαμβακεράκης / Τσιομπίκας Γρηγόριος (Εμμ. Παχλά 33) |
 | 2831055212 | Βαρούχα - Αναγνωστάκης / Καλαφατάκη Ελένη - Γεωργία (Δημητρακάκη 21) |
 
-The OCR'd name is then the only disambiguating signal — and it is the noisiest
-one. `choosePhoneReference` (`validate.go:247`) and `chooseCatalogReference`
-(`pipeline.go:444`) decide it with raw edit-distance similarity, and
+The OCR'd name is then the intended disambiguating signal — and it is the
+noisiest one; the similarity score only consults it when it beats the address
+score, which an exact address match to the wrong twin never loses (§4.1).
+`ChoosePhoneReference` (`validate.go:264`) and `chooseCatalogReference`
+(`pipeline.go:458`) decide it with raw edit-distance similarity, and
 `FillFromCatalog` overwrites name/address/coordinates/Google details on the
 result without a similarity gate. Validation runs *after* the overwrite, so a
 wrong pick is compared against itself and produces no warning. Thirteen catalog
@@ -127,7 +132,10 @@ run in parallel). Sketch:
 a corpus-tuned threshold and the Noul is high; `none` or low confidence keeps
 today's deterministic pick and raises the existing `Discrepancy` warning. The
 model never generates a pharmacy — candidates are catalog entries chosen by code,
-so every possible answer is a verified record or an explicit "none".
+so every possible answer is a verified record or an explicit "none". Implemented
+and measured: `internal/adjudicate/identity.go` (`AdjudicateIdentity` builds the
+questions, `AcceptIdentity` applies the gates); §4.1 records the experiment and
+the runtime wiring behind `--judge`.
 
 **Why this is the best fit.** It is the reranking pattern
 ([rerank cookbook](https://docs.typesafe.ai/cookbooks/rerank_typesafe)): retrieve
@@ -283,6 +291,87 @@ language and to test other languages. On this Greek dataset the judgments were
 accurate (same-name Noul ≥ 0.79 on true pairs), but that must hold on the full
 corpus before the runtime use in A is trusted.
 
+### 4.1 Experiment: catalog-identity adjudication (2026-09-19)
+
+Opportunity A is prototyped as a rerank: `internal/adjudicate/identity.go` builds
+one Choice per entry (the code-supplied candidates plus an explicit `none`) and
+one same-pharmacy Noul per candidate, and `AcceptIdentity` applies the
+confidence and Noul gates. It is not wired into the runtime pipeline; the
+experiment measures it first.
+
+```sh
+TYPESAFE_EXPERIMENT=1 TYPESAFE_EXPERIMENT_OUT=/tmp/ts-identity \
+  go test -run TestIdentityAdjudicationExperiment -v ./internal/adjudicate
+```
+
+**Dataset.** 57 readings over the four shared-phone pairs (model `jev-1.13.0`):
+41 decisive readings of the eight catalog entries — exact names, short forms,
+first words, Greeklish transliterations, recognizer look-alike script (the
+`KAAYΦATAKH` / `ΔHMHTPAKAKH` failure modes in the corpus), and swapped-character
+typos — plus 16 readings that must not resolve to a candidate: address-only,
+street-derived names (`ΦΑΡΜΑΚΕΙΟ ΔΗΜΗΤΡΑΚΑΚΗ`), another pharmacy's name, and an
+unrelated business. Ground truth is the entry each decisive reading derives
+from. The readings are simulated: the schedule corpus does not contain these
+four numbers (the same synthesis caveat as §4).
+
+**Results (three runs; picks were identical on all 57 readings in every run).**
+
+| Reading class | n | Similarity baseline | System One |
+|---|---|---|---|
+| decisive: correct pick | 41 | 30 | **41** |
+| decisive: declined | — | 0 | 0 |
+| no-pick: declined | 16 | 0 | 9 |
+| no-pick: forced pick | 16 | 16 | 7 |
+
+- The baseline loses exactly where the merge experiment lost: short forms
+  (`ΒΑΡΟΥΧΑ` against `Βαρούχα - Αναγνωστάκης` score below the gate).
+- The acceptance signal `min(choice confidence, same-pharmacy Noul)` separates:
+  correct picks 0.77–0.96, wrong picks 0.17–0.75. A gate at **0.8** on both
+  values accepts 40/41 correct picks, with a 0.06 margin between the lowest
+  accepted correct (0.81) and the highest wrong signal (0.75); the one rejected
+  correct pick is the `ΒΑΡΟΥΧΑ` short form, which falls back to the
+  deterministic pick.
+- The Noul is what catches the forced picks: on the address-only reading of the
+  `Δαμβακεράκης / Τσιομπίκας` pair the Choice said 0.93–0.94 while the Noul
+  stayed at 0.75; for another pharmacy's name, Choice 0.85–0.88 with Noul
+  0.35–0.36.
+- Verdicts are stable: three runs produced identical picks on all 57 readings,
+  with signals moving by at most 0.06. Only the `ΒΑΡΟΥΧΑ` short form sits
+  near the gate.
+- Batching fails, as in §4: all 57 readings in one request agreed with the
+  per-reading requests on only 20–22/57 picks. One request per ambiguous entry.
+- Cost: 57 requests, 50.7k in / 5.1k out tokens, ~20 s wall.
+
+**Reading of the result.** The judgment repairs the runtime's silent wrong-pick
+class — a phone match that rewrites the entry with the wrong twin — and its Noul
+flags the readings that cannot be resolved. It does not decline every
+unresolvable reading (7/16), but the Noul keeps those below the gate, so with
+`MinConfidence` and `MinSamePharmacy` at 0.8 they become the deterministic pick
+plus a warning instead of a silent overwrite. This supports the §3A consumption
+rule; the runtime wiring landed the same day.
+
+**Wiring (2026-09-19).** `pipeline.FillFromCatalogJudged` consults the judge only
+when a phone resolves to several catalog entries, one request each; an accepted
+verdict replaces the similarity pick, every other outcome keeps it and adds a
+warning (additive; the JSON schema does not change). The fill records its picks,
+and `ValidateResultWithPicks` validates each pharmacy against that entry, so the
+validation block agrees with the filled name instead of re-picking behind it.
+The public client enables all of this with `ClientConfig.IdentityJudge`
+(`--judge` in the CLI, `--judge-model` / `--judge-cache` for the pinned model and
+the decision file): pinned model, the measured 0.8 gates, and a required
+decision cache — every decision is recorded and reused, so the output stays
+deterministic.
+
+Wiring also sharpened the diagnosis of the old pick. The similarity score is
+`max(name similarity, address similarity)`, so a perfect address match to one
+twin beats any name evidence for the other; where the twins share an identical
+catalog address (`2831055212`, `2831025123`) both score 1.0, the name tie-break
+decides, and the OCR name is never consulted:
+`ChoosePhoneReference("Καλαφατάκη Ελένη - Γεωργία", <shared address>, refs)`
+returns Βαρούχα. `internal/pipeline/identity_test.go` pins both the override and
+the fallback behavior, including the case where the un-picked validator flags a
+name mismatch against the judged entry.
+
 ## 5. Guardrails: what stays in code
 
 - **Candidate retrieval, normalisation, canonicalisation, validation, JSON
@@ -292,10 +381,14 @@ corpus before the runtime use in A is trusted.
 - The model never generates a name, phone number or address, never invents a
   candidate, and never bypasses `validate`.
 - Low confidence produces a **warning or fallback**, never a silent overwrite.
+  Implemented: `internal/pipeline/identity.go` falls back to the similarity
+  pick and records a warning for every non-accepted verdict.
 - Answers to unused speculative questions are ignored; thresholds are evaluated
   on the corpus, not copied from cookbook examples.
 - A pinned model version and a decision cache keyed by input hash are
-  prerequisites for any runtime use.
+  prerequisites for any runtime use. Implemented: `adjudicate.DefaultJudgeModel`
+  and `DecisionCache` (`internal/adjudicate/cache.go`), required by
+  `ClientConfig.IdentityJudge`.
 
 ## 6. Constraints
 
@@ -304,11 +397,14 @@ corpus before the runtime use in A is trusted.
   results (C, B build-time mode); (b) runtime calls behind an opt-in flag with
   the current deterministic path as fallback; (c) cached runtime decisions with
   golden tests pinning the outputs. Never blend an uncached model decision
-  silently into the output.
+  silently into the output. The identity adjudicator takes (b) with a required
+  cache (c): `--judge` is opt-in and every decision is persisted before it can
+  enter the output.
 - **Offline / no cloud.** Runtime judgment sends OCR text (public pharmacy data)
   to a third party. That is a data-policy decision, not just a technical one —
   make it opt-in (environment/flag), default off, and document it next to the
-  "local, CPU-only" promise.
+  "local, CPU-only" promise. Implemented as `--judge` / `ClientConfig.IdentityJudge`
+  and documented in README/INTEGRATION; the default path is unchanged.
 - **Trust.** Judgments are probabilities, not truth. Every use must define what
   happens below threshold; the existing warnings/discrepancy fields are the
   natural channel.
@@ -329,7 +425,11 @@ corpus before the runtime use in A is trusted.
    artifact stays deterministic. Measured defaults: `-judge-min-confidence 0.5`,
    one request per phone group.
 2. **A — catalog identity adjudication**, opt-in, deterministic fallback intact,
-   with a test covering the four shared-phone pairs above.
+   with a test covering the four shared-phone pairs above. **Done:**
+   `internal/adjudicate/identity.go` and §4.1; wired through
+   `pipeline.FillFromCatalogJudged`, `ValidateResultWithPicks` and
+   `ClientConfig.IdentityJudge` (`--judge`), with the measured 0.8 gates and a
+   required decision cache; the similarity pick stays the fallback.
 3. **B / D / E** only after measuring on the corpus, keeping the default path
    untouched.
 
@@ -342,6 +442,10 @@ call, and change no JSON schema (warnings are additive).
   model version over a 14-case synthesized dataset, not the full corpus. The
   TypeSafe documentation's own thresholds and cookbook results are examples, not
   universal rules — validate them on this corpus.
+- The §4.1 readings are simulated from catalog names, not live OCR, and its
+  acceptance band is thin (0.05–0.06 between the highest wrong and lowest
+  correct signal). Re-measure on live schedule readings before trusting the 0.8
+  gate, and re-measure whenever the model version changes.
 - Model behaviour changes across versions; the pinned OCR models and reference
   catalog do not. That asymmetry is the reason build-time use (C) is the safest
   entry point.

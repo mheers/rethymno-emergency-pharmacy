@@ -42,6 +42,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mheers/rethymno-emergency-pharmacy/internal/adjudicate"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/fetch"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/ocr"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/pipeline"
@@ -88,15 +89,44 @@ type ClientConfig struct {
 	NumThreads int
 	// HTTPTimeout bounds URL downloads (default 30s).
 	HTTPTimeout time.Duration
+	// IdentityJudge enables TypeSafe System One catalog-identity adjudication
+	// for pharmacies whose phone number matches several catalog entries. It
+	// sends OCR text (public pharmacy data) to api.typesafe.ai, so it is
+	// opt-in and breaks the otherwise local, CPU-only default. Nil keeps the
+	// deterministic similarity pick. TYPESAFE_API_KEY must be set.
+	IdentityJudge *IdentityJudgeConfig
 	// Log receives pipeline diagnostics (default stderr logger).
 	Log *log.Logger
 }
 
+// IdentityJudgeConfig configures runtime catalog-identity adjudication
+// (TYPESAFE_EVALUATION.md §3A). Every decision is recorded in CachePath and
+// reused, so repeated parses produce identical output; a group whose decision
+// is missing is evaluated once and persisted.
+type IdentityJudgeConfig struct {
+	// Model is the pinned System One model. Empty selects the model the
+	// 0.8 gates were measured with (adjudicate.DefaultJudgeModel).
+	Model string
+	// CachePath is the decision cache file. Required: persistence is what
+	// keeps the JSON deterministic across runs.
+	CachePath string
+	// MinConfidence gates the Choice answer's confidence; zero selects the
+	// measured default (0.8).
+	MinConfidence float64
+	// MinSamePharmacy gates the same-pharmacy Noul; zero selects the
+	// measured default (0.8).
+	MinSamePharmacy float64
+}
+
+const defaultIdentityGate = 0.8
+
 // Client runs the OCR pipeline.
 type Client struct {
-	cfg     ClientConfig
-	pipe    *pipeline.Pipeline
-	backend pipeline.OCRBackend
+	cfg      ClientConfig
+	pipe     *pipeline.Pipeline
+	backend  pipeline.OCRBackend
+	judge    pipeline.IdentityJudge
+	judgeCfg adjudicate.IdentityConfig
 }
 
 // New creates a Client and initializes the vision processor and the OCR
@@ -123,6 +153,13 @@ func New(cfg ClientConfig) (*Client, error) {
 		ocr.SetEmbeddedModels(embeddedDetModel, rec)
 	}
 
+	// The identity judge is configured before the OCR backend so that a
+	// configuration error cannot leave a worker process behind.
+	judge, judgeCfg, err := buildIdentityJudge(cfg.IdentityJudge)
+	if err != nil {
+		return nil, err
+	}
+
 	v := vision.New(vision.Config{
 		TargetDPI:         150,
 		MaxWidth:          4096,
@@ -134,7 +171,6 @@ func New(cfg ClientConfig) (*Client, error) {
 	})
 
 	var backend pipeline.OCRBackend
-	var err error
 	switch cfg.Backend {
 	case BackendInProcess:
 		backend, err = ocr.New(ocr.Config{
@@ -159,9 +195,47 @@ func New(cfg ClientConfig) (*Client, error) {
 	}
 
 	return &Client{
-		cfg:     cfg,
-		pipe:    pipeline.New(v, backend, cfg.Log),
-		backend: backend,
+		cfg:      cfg,
+		pipe:     pipeline.New(v, backend, cfg.Log),
+		backend:  backend,
+		judge:    judge,
+		judgeCfg: judgeCfg,
+	}, nil
+}
+
+// buildIdentityJudge wires the optional runtime adjudicator. Any
+// configuration error is returned before the OCR backend is created.
+func buildIdentityJudge(cfg *IdentityJudgeConfig) (pipeline.IdentityJudge, adjudicate.IdentityConfig, error) {
+	if cfg == nil {
+		return nil, adjudicate.IdentityConfig{}, nil
+	}
+	if strings.TrimSpace(cfg.CachePath) == "" {
+		return nil, adjudicate.IdentityConfig{}, errors.New("rethymnoemergency: IdentityJudge.CachePath is required: decisions must be recorded to keep the JSON deterministic")
+	}
+	key := os.Getenv(adjudicate.APIKeyEnv)
+	if key == "" {
+		return nil, adjudicate.IdentityConfig{}, fmt.Errorf("rethymnoemergency: identity adjudication needs %s", adjudicate.APIKeyEnv)
+	}
+	model := cfg.Model
+	if model == "" {
+		model = adjudicate.DefaultJudgeModel
+	}
+	client := adjudicate.NewClient(key)
+	client.Model = model
+	cache, err := adjudicate.OpenDecisionCache(cfg.CachePath)
+	if err != nil {
+		return nil, adjudicate.IdentityConfig{}, fmt.Errorf("rethymnoemergency: identity decision cache: %w", err)
+	}
+	minConf, minSame := cfg.MinConfidence, cfg.MinSamePharmacy
+	if minConf == 0 {
+		minConf = defaultIdentityGate
+	}
+	if minSame == 0 {
+		minSame = defaultIdentityGate
+	}
+	return adjudicate.NewCachedJudge(client, cache), adjudicate.IdentityConfig{
+		MinConfidence:   minConf,
+		MinSamePharmacy: minSame,
 	}, nil
 }
 
@@ -185,9 +259,12 @@ func (c *Client) Parse(ctx context.Context, data []byte, opts Options) (*Result,
 		return nil, err
 	}
 	references := loadReferences(c.cfg.Log)
-	pipeline.FillFromCatalog(&res.Schedule, references)
-	vals, warnings := pipeline.ValidateResult(&res.Schedule, references)
+	fill := pipeline.FillFromCatalogJudged(ctx, &res.Schedule, references, c.judge, c.judgeCfg)
+	vals, warnings := pipeline.ValidateResultWithPicks(&res.Schedule, references, fill.Picks)
 	res.Validations = vals
+	if len(fill.Warnings) > 0 {
+		warnings = append(fill.Warnings, warnings...)
+	}
 	res.Warnings = warnings
 	pipeline.ApplyValidation(&res.Schedule, vals)
 	return res, nil

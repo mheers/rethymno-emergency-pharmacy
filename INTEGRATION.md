@@ -48,6 +48,13 @@ These apply to every surface; they are the result of hard-won debugging
 5. **JSON output is deterministic** for equal inputs (struct field order,
    sorted map keys) and carries `image_sha256` — you can cache, diff, and
    ETag it.
+6. **Catalog-identity adjudication is opt-in and off by default.** When
+   enabled (`--judge`, or `ClientConfig.IdentityJudge`), OCR text for the few
+   phone numbers that match several catalog entries is sent to
+   `api.typesafe.ai` and each decision is recorded in a cache file;
+   determinism is preserved because later runs reuse the recorded decision.
+   `TYPESAFE_API_KEY` is required. Without it the pipeline stays local and
+   CPU-only.
 
 ---
 
@@ -114,6 +121,7 @@ func main() {
 | `WorkerCommand` | `[os.Executable(), "ocr-worker"]` | override the worker binary |
 | `NumThreads` | engine default | ONNX inference threads |
 | `HTTPTimeout` | 30s | bounds `ParseURL` downloads |
+| `IdentityJudge` | `nil` (off) | opt-in TypeSafe System One adjudication for phones matching several catalog entries; requires `CachePath` and `TYPESAFE_API_KEY`, sends OCR text to `api.typesafe.ai` |
 | `Log` | stderr logger | pipeline diagnostics |
 
 ### 1.4 Client methods
@@ -242,7 +250,8 @@ rethymno-emergency-pharmacy benchmark ./testdata/schedules --iterations 3
 - **stdout carries only the JSON result**; logs and diagnostics go to stderr —
   safe to pipe into `jq`, files, or a queue;
 - flags: `--models <dir>` (skip if embedded), `--debug <dir>`,
-  `--source <url>`, `--city <name>`, `--iterations <n>`.
+  `--source <url>`, `--city <name>`, `--iterations <n>`, and the opt-in
+  `--judge` / `--judge-model` / `--judge-cache` (see §0.6).
 
 Weekly job example:
 
@@ -253,8 +262,10 @@ exec /usr/local/bin/rethymno-emergency-pharmacy ingest \
   --out /var/lib/schedules/$(date +%Y-%m-%d).json
 ```
 
-Note: `ingest` is the only subcommand that touches the network (fskriti.gr);
-`parse` is fully offline.
+Note: `ingest` is the only subcommand that touches the network by default
+(fskriti.gr); `parse` is fully offline. With `--judge`, `ingest`, `parse` and
+`serve` additionally call `api.typesafe.ai` for ambiguous catalog matches —
+see §0.6.
 
 ---
 
@@ -366,6 +377,9 @@ loopback / an internal network only.
 ```sh
 rethymno-emergency-pharmacy serve --listen 127.0.0.1:8080 --cache-ttl 24h
 ```
+
+With `--judge`, ambiguous catalog matches are adjudicated once and recorded in
+`--judge-cache` (§0.6); the response JSON gains additive warnings only.
 
 | Route | Behavior |
 |---|---|

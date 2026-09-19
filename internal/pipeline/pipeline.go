@@ -17,6 +17,7 @@ import (
 
 	"gocv.io/x/gocv"
 
+	"github.com/mheers/rethymno-emergency-pharmacy/internal/adjudicate"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/layout"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/normalize"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/ocr"
@@ -359,8 +360,18 @@ func writeDebug(proc *vision.ProcessedSchedule, lines []ocr.OCRLine, doc *layout
 
 // ValidateResult runs semantic validation over the parsed schedule and
 // fills missing names/addresses from the reference catalog when the phone
-// number identifies a known pharmacy.
+// number identifies a known pharmacy. It uses the similarity pick for the
+// catalog match; ValidateResultWithPicks accepts the picks an adjudicated
+// fill already made.
 func ValidateResult(sched *parse.Schedule, refs []validate.Reference) ([]PharmacyValidation, []string) {
+	return ValidateResultWithPicks(sched, refs, nil)
+}
+
+// ValidateResultWithPicks is ValidateResult with the identity picks recorded
+// by FillFromCatalogJudged: a pharmacy whose pick is known is validated
+// against that catalog entry instead of re-running the similarity selection,
+// so the validation block agrees with the filled name.
+func ValidateResultWithPicks(sched *parse.Schedule, refs []validate.Reference, picks map[string]validate.Reference) ([]PharmacyValidation, []string) {
 	v := validate.NewValidator(refs)
 	var out []PharmacyValidation
 	var warnings []string
@@ -372,7 +383,11 @@ func ValidateResult(sched *parse.Schedule, refs []validate.Reference) ([]Pharmac
 			}
 			for k := range shift.Pharmacies {
 				ph := &shift.Pharmacies[k]
-				res := v.ValidatePharmacy(ph.Name, ph.Address, ph.Phone)
+				var preferred *validate.Reference
+				if ref, ok := picks[pharmacyKey(ph.Phone, ph.Name)]; ok {
+					preferred = &ref
+				}
+				res := v.ValidatePharmacyWithReference(ph.Name, ph.Address, ph.Phone, preferred)
 				out = append(out, PharmacyValidation{
 					Phone:      ph.Phone,
 					Name:       ph.Name,
@@ -405,40 +420,39 @@ func nameSimilarity(ocr, catalog string) float64 {
 // FillFromCatalog completes missing name/address fields using the reference
 // catalog, keyed by the normalized phone number, and attaches the catalog's
 // Latin name/address, coordinates, and optional Google enrichment to every
-// matched pharmacy.
+// matched pharmacy. It is the deterministic path; FillFromCatalogJudged adds
+// the optional identity adjudication for phones that match several entries.
 func FillFromCatalog(sched *parse.Schedule, refs []validate.Reference) int {
+	return FillFromCatalogJudged(context.Background(), sched, refs, nil, adjudicate.IdentityConfig{}).Filled
+}
+
+// catalogByPhone indexes reference entries by each normalized phone number.
+func catalogByPhone(refs []validate.Reference) map[string][]validate.Reference {
 	byPhone := map[string][]validate.Reference{}
 	for _, r := range refs {
 		for _, d := range normalize.Phones(r.Phone) {
 			byPhone[d] = append(byPhone[d], r)
 		}
 	}
-	filled := 0
-	for i := range sched.Days {
-		for j := range sched.Days[i].Shifts {
-			for k := range sched.Days[i].Shifts[j].Pharmacies {
-				ph := &sched.Days[i].Shifts[j].Pharmacies[k]
-				candidates := byPhone[normalize.DigitsOnly(ph.Phone)]
-				if len(candidates) == 0 {
-					continue
-				}
-				ref := chooseCatalogReference(ph, candidates)
-				ph.NameLat = ref.NameLat
-				ph.AddressLat = ref.AddressLat
-				ph.Lat = ref.Lat
-				ph.Lon = ref.Lon
-				ph.Google = ref.Google
-				catName := strings.ToUpper(normalize.NormalizeGreek(ref.Name))
-				catAddr := strings.ToUpper(normalize.NormalizeGreek(ref.Address))
-				if ph.Name != catName || ph.Address != catAddr {
-					ph.Name = catName
-					ph.Address = catAddr
-					filled++
-				}
-			}
-		}
+	return byPhone
+}
+
+// applyCatalogReference overwrites the pharmacy's name, address and enrichment
+// with the reference entry. It reports whether the name or address changed.
+func applyCatalogReference(ph *parse.Pharmacy, ref validate.Reference) bool {
+	ph.NameLat = ref.NameLat
+	ph.AddressLat = ref.AddressLat
+	ph.Lat = ref.Lat
+	ph.Lon = ref.Lon
+	ph.Google = ref.Google
+	catName := strings.ToUpper(normalize.NormalizeGreek(ref.Name))
+	catAddr := strings.ToUpper(normalize.NormalizeGreek(ref.Address))
+	if ph.Name != catName || ph.Address != catAddr {
+		ph.Name = catName
+		ph.Address = catAddr
+		return true
 	}
-	return filled
+	return false
 }
 
 func chooseCatalogReference(ph *parse.Pharmacy, refs []validate.Reference) validate.Reference {

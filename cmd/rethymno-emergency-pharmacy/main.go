@@ -23,6 +23,7 @@ import (
 	"time"
 
 	rethymnoemergency "github.com/mheers/rethymno-emergency-pharmacy"
+	"github.com/mheers/rethymno-emergency-pharmacy/internal/adjudicate"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/extract"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/fetch"
 	"github.com/mheers/rethymno-emergency-pharmacy/internal/ocr"
@@ -91,7 +92,47 @@ Flags:
   --iterations <n>  benchmark repetitions (default 1)
   --listen <addr>   serve: HTTP listen address (default 127.0.0.1:8080)
   --cache-ttl <d>   serve: cache TTL for parsed schedules (default 24h)
+  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches with
+                    TypeSafe System One (sends OCR text to api.typesafe.ai;
+                    requires TYPESAFE_API_KEY; decisions are cached)
+  --judge-model     pinned System One model (default jev-1.13.0)
+  --judge-cache     identity decision cache file (default: user cache dir)
 `)
+}
+
+// judgeFlags groups the identity-adjudication flags shared by ingest, parse
+// and serve. Judging is opt-in and default off: it sends OCR text (public
+// pharmacy data) to api.typesafe.ai, unlike the local, CPU-only pipeline.
+type judgeFlags struct {
+	enable *bool
+	model  *string
+	cache  *string
+}
+
+func addJudgeFlags(fs *flag.FlagSet) *judgeFlags {
+	return &judgeFlags{
+		enable: fs.Bool("judge", false, "adjudicate ambiguous catalog matches with TypeSafe System One"),
+		model:  fs.String("judge-model", adjudicate.DefaultJudgeModel, "pinned System One model"),
+		cache:  fs.String("judge-cache", defaultJudgeCachePath(), "identity decision cache file"),
+	}
+}
+
+func (j *judgeFlags) config() *rethymnoemergency.IdentityJudgeConfig {
+	if j == nil || !*j.enable {
+		return nil
+	}
+	return &rethymnoemergency.IdentityJudgeConfig{
+		Model:     *j.model,
+		CachePath: *j.cache,
+	}
+}
+
+func defaultJudgeCachePath() string {
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(dir, "rethymno-emergency-pharmacy", "identity-decisions.json")
 }
 
 // openEngine builds the vision processor (in-process, gocv) and the OCR
@@ -125,14 +166,16 @@ func cmdParse(ctx context.Context, args []string) error {
 	debugDir := fs.String("debug", "", "debug output directory")
 	source := fs.String("source", "", "source URL recorded in JSON")
 	city := fs.String("city", "Ρέθυμνο", "city recorded in JSON")
+	judge := addJudgeFlags(fs)
 	fs.Parse(args)
 	if fs.NArg() < 1 {
 		return fmt.Errorf("usage: rethymno-emergency-pharmacy parse <image> [flags]")
 	}
 	client, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath: *modelsDir,
-		RecModel:  *recModel,
-		Log:       log.Default(),
+		ModelPath:     *modelsDir,
+		RecModel:      *recModel,
+		IdentityJudge: judge.config(),
+		Log:           log.Default(),
 	})
 	if err != nil {
 		return err
@@ -227,6 +270,7 @@ func cmdIngest(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("ingest", flag.ExitOnError)
 	modelsDir := fs.String("models", "", "ONNX model directory (empty = embedded)")
 	outJSON := fs.String("out", "", "write JSON to this file instead of stdout")
+	judge := addJudgeFlags(fs)
 	fs.Parse(args)
 
 	client := fetch.New(30 * time.Second)
@@ -247,8 +291,9 @@ func cmdIngest(ctx context.Context, args []string) error {
 	fmt.Fprintf(os.Stderr, "downloading %s ...\n", cur.URL)
 
 	ocrClient, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath: *modelsDir,
-		Log:       log.Default(),
+		ModelPath:     *modelsDir,
+		IdentityJudge: judge.config(),
+		Log:           log.Default(),
 	})
 	if err != nil {
 		return err
@@ -362,15 +407,17 @@ func cmdServe(ctx context.Context, args []string) error {
 	recModel := fs.String("rec-model", "small", "embedded recognition model: small, medium or tiny")
 	city := fs.String("city", "Ρέθυμνο", "city recorded in JSON")
 	source := fs.String("source", "", "source URL recorded in JSON")
+	judge := addJudgeFlags(fs)
 	fs.Parse(args)
 	if fs.NArg() > 0 {
 		return fmt.Errorf("usage: rethymno-emergency-pharmacy serve [flags]")
 	}
 
 	client, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath: *modelsDir,
-		RecModel:  *recModel,
-		Log:       log.Default(),
+		ModelPath:     *modelsDir,
+		RecModel:      *recModel,
+		IdentityJudge: judge.config(),
+		Log:           log.Default(),
 	})
 	if err != nil {
 		return err

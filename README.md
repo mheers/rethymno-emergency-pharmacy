@@ -2,9 +2,11 @@
 
 A local, CPU-only OCR pipeline that turns the weekly **Rethymno pharmacy duty
 schedule** — published as a JPEG image on [fskriti.gr](https://fskriti.gr/εφημερίες-φαρμακείων-ρεθύμνου/) —
-into validated, deterministic JSON. Written in Go, no database, no cloud:
-the CLI, the library behind it, and an optional internal HTTP API are the
-whole surface.
+into validated, deterministic JSON. Written in Go, no database, no cloud by
+default: the CLI, the library behind it, and an optional internal HTTP API are
+the whole surface. An opt-in TypeSafe System One adjudicator can resolve
+ambiguous catalog matches — off unless asked for, and never able to write a
+pharmacy the catalog does not contain (see `--judge` below).
 
 ```
 image → OpenCV preprocessing → PP-OCRv6 (ONNX Runtime) → layout → parse → validate → JSON
@@ -105,7 +107,32 @@ Flags:
   --iterations <n>  benchmark repetitions (default 1)
   --listen <addr>   serve: HTTP listen address (default 127.0.0.1:8080)
   --cache-ttl <d>   serve: cache TTL for parsed schedules (default 24h)
+  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches with
+                    TypeSafe System One (sends OCR text to api.typesafe.ai;
+                    requires TYPESAFE_API_KEY; decisions are cached)
+  --judge-model     pinned System One model (default jev-1.13.0)
+  --judge-cache     identity decision cache file (default: user cache dir)
 ```
+
+### Optional: catalog-identity adjudication
+
+When a phone number matches several catalog entries (four numbers in the
+Rethymno catalog are two pharmacies on one line), the similarity matcher
+scores `max(name, address)`: an exact address match to one twin overrides the
+other twin's name evidence, and two of the four pairs share an identical
+address, where the tie-break decides and the OCR name is never consulted — the
+wrong pharmacy's name, coordinates and Google data can be filled silently.
+With `--judge` (or
+`ClientConfig.IdentityJudge`), TypeSafe System One reads the OCR name and
+selects the one catalog entry it describes — or answers `none`. The measured
+gate (TYPESAFE_EVALUATION.md §4.1) accepts a selection only at 0.8 confidence
+and 0.8 same-pharmacy Noul; everything else keeps the deterministic pick and
+adds a warning. Every decision is recorded in `--judge-cache` and reused, so
+output stays deterministic; deleting the cache file (or one entry) forces
+re-evaluation. In containers without `$HOME`, pass `--judge-cache` explicitly
+(ideally into a mounted volume) so the decisions persist and stay reviewable.
+This is the one code path that leaves the machine: it is
+opt-in, default off, and sends only OCR text of public pharmacy data.
 
 ### HTTP API
 
@@ -210,6 +237,7 @@ host binary must expose an `ocr-worker` subcommand (see above), or set
 ```
 cmd/rethymno-emergency-pharmacy/     CLI (ingest, parse, inspect, benchmark, serve)
 cmd/merge-golden/                    one-off merge of the Google-enriched golden catalog into the reference
+internal/adjudicate/  TypeSafe System One client, catalog-identity adjudicator, decision cache
 internal/server/      internal HTTP API: TTL cache, midnight refresh
 internal/fetch/       HTTP download of the FSKriti schedule page
 internal/extract/     schedule-image detection and week selection
@@ -238,7 +266,8 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
 - [TYPESAFE_EVALUATION.md](TYPESAFE_EVALUATION.md) — where System One judgments
   can replace fragile parsing heuristics (catalog identity adjudication, line
   classification, golden-catalog merge), the measured golden-merge adjudicator
-  now used by `merge-golden`, and the guardrails it runs behind.
+  now used by `merge-golden`, the measured catalog-identity adjudicator wired
+  into the runtime behind `--judge`, and the guardrails they run behind.
 - `rethymno-emergency-pharmacy inspect <image>` — geometry, columns and raw OCR diagnostics
   for a single image.
 

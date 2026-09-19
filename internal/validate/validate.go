@@ -176,6 +176,14 @@ func catalogNameKey(name string) string {
 
 // ValidatePharmacy checks one pharmacy and looks it up in the catalog.
 func (v *Validator) ValidatePharmacy(name, address, phone string) Validation {
+	return v.ValidatePharmacyWithReference(name, address, phone, nil)
+}
+
+// ValidatePharmacyWithReference is ValidatePharmacy with a caller-supplied
+// catalog match. The runtime passes the entry an identity adjudicator selected
+// for a shared-phone reading, so validation cross-checks that entry instead of
+// re-running the similarity pick (TYPESAFE_EVALUATION.md §3A).
+func (v *Validator) ValidatePharmacyWithReference(name, address, phone string, preferred *Reference) Validation {
 	var res Validation
 	res.PhoneValid = ValidatePhone(phone)
 	res.TimeValid = true // per-shift check happens elsewhere
@@ -184,7 +192,10 @@ func (v *Validator) ValidatePharmacy(name, address, phone string) Validation {
 
 	// catalog lookup by phone (digits only, matching NewValidator's keys)
 	if candidates := v.ByPhone[normalize.DigitsOnly(phone)]; len(candidates) > 0 {
-		ref := choosePhoneReference(name, address, candidates)
+		ref := ChoosePhoneReference(name, address, candidates)
+		if preferred != nil {
+			ref = *preferred
+		}
 		res.CatalogMatch = &ref
 		sim := normalize.Similarity(normalize.GreekToLatin(name), normalize.GreekToLatin(ref.Name))
 		if sim < 0.45 && name != "" {
@@ -244,7 +255,13 @@ func (v *Validator) ValidatePharmacy(name, address, phone string) Validation {
 	return res
 }
 
-func choosePhoneReference(name, address string, refs []Reference) Reference {
+// ChoosePhoneReference is the deterministic selection among catalog entries
+// that share a phone number: the name similarity against the catalog name,
+// raised by the address similarity, with a name-based tie-break. It is
+// exported so that callers comparing a System One judgment against today's
+// behavior (TYPESAFE_EVALUATION.md §3A) use the same decision the validator
+// takes.
+func ChoosePhoneReference(name, address string, refs []Reference) Reference {
 	if len(refs) == 1 {
 		return refs[0]
 	}
