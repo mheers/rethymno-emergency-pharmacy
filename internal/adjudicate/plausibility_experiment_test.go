@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -48,6 +50,7 @@ func TestPlausibilityAdjudicationExperiment(t *testing.T) {
 	} else {
 		client.Model = "jev-1.13.0"
 	}
+	workers := experimentWorkers()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 
@@ -55,13 +58,13 @@ func TestPlausibilityAdjudicationExperiment(t *testing.T) {
 	if err != nil {
 		t.Fatalf("load dataset: %v", err)
 	}
-	t.Logf("model %s; %d entries (%d corpus, %d synthetic)",
-		client.Model, len(cases), countPlausibilitySource(cases, "corpus"), countPlausibilitySource(cases, "synthetic"))
+	t.Logf("model %s; %d entries (%d corpus, %d synthetic); %d concurrent requests",
+		client.Model, len(cases), countPlausibilitySource(cases, "corpus"), countPlausibilitySource(cases, "synthetic"), workers)
 
 	// ---- arm A: one request per entry ----
-	armA, usageA, wallA := runPlausibilityArm(t, ctx, client, cases)
+	armA, usageA, wallA := runPlausibilityArm(t, ctx, client, cases, workers)
 	// ---- arm A2: repeat, to see how stable the verdicts are ----
-	armA2, usageA2, wallA2 := runPlausibilityArm(t, ctx, client, cases)
+	armA2, usageA2, wallA2 := runPlausibilityArm(t, ctx, client, cases, workers)
 	// ---- arm B: every entry in one request ----
 	entries := make([]PlausibilityEntry, len(cases))
 	for i, c := range cases {
@@ -83,26 +86,67 @@ func TestPlausibilityAdjudicationExperiment(t *testing.T) {
 	}
 }
 
-func runPlausibilityArm(t *testing.T, ctx context.Context, client *Client, cases []plausibilityCase) ([]plausibilityArmResult, Usage, time.Duration) {
+// experimentWorkers returns the number of concurrent System One requests the
+// live experiments use. The batching experiment showed that independent
+// per-entry requests run concurrently 8x faster with decision differences no
+// larger than run-to-run noise; merging entries into one request does change
+// answers and is not done. TYPESAFE_EXPERIMENT_WORKERS overrides the default.
+func experimentWorkers() int {
+	if v := os.Getenv("TYPESAFE_EXPERIMENT_WORKERS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return 8
+}
+
+// runPlausibilityArm evaluates one request per entry over the dataset, with
+// workers concurrent requests. Results are in case order.
+func runPlausibilityArm(t *testing.T, ctx context.Context, client *Client, cases []plausibilityCase, workers int) ([]plausibilityArmResult, Usage, time.Duration) {
 	t.Helper()
+	if workers < 1 {
+		workers = 1
+	}
+	start := time.Now()
 	results := make([]plausibilityArmResult, len(cases))
 	var usage Usage
-	var wall time.Duration
-	for i, c := range cases {
-		start := time.Now()
-		verdicts, resp, err := client.AdjudicatePlausibility(ctx, []PlausibilityEntry{c.Entry})
-		if err != nil {
-			t.Fatalf("entry %d (%s): %v", i, c.ID, err)
-		}
-		if len(verdicts) != 1 {
-			t.Fatalf("entry %d (%s): %d verdicts", i, c.ID, len(verdicts))
-		}
-		results[i] = plausibilityArmResult{verdict: verdicts[0], resp: resp, elapsed: time.Since(start)}
-		usage.InputTokens += resp.Usage.InputTokens
-		usage.OutputTokens += resp.Usage.OutputTokens
-		wall += results[i].elapsed
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	jobs := make(chan int, len(cases))
+	for i := range cases {
+		jobs <- i
 	}
-	return results, usage, wall
+	close(jobs)
+	errs := make(chan error, workers)
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := range jobs {
+				reqStart := time.Now()
+				verdicts, resp, err := client.AdjudicatePlausibility(ctx, []PlausibilityEntry{cases[i].Entry})
+				if err != nil {
+					errs <- fmt.Errorf("entry %d (%s): %w", i, cases[i].ID, err)
+					return
+				}
+				if len(verdicts) != 1 {
+					errs <- fmt.Errorf("entry %d (%s): %d verdicts", i, cases[i].ID, len(verdicts))
+					return
+				}
+				mu.Lock()
+				results[i] = plausibilityArmResult{verdict: verdicts[0], resp: resp, elapsed: time.Since(reqStart)}
+				usage.InputTokens += resp.Usage.InputTokens
+				usage.OutputTokens += resp.Usage.OutputTokens
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	if err := <-errs; err != nil {
+		t.Fatal(err)
+	}
+	return results, usage, time.Since(start)
 }
 
 // plausibilityArmResult is one per-entry call in an arm.

@@ -392,6 +392,9 @@ into the runtime.
 ```sh
 TYPESAFE_EXPERIMENT=1 TYPESAFE_EXPERIMENT_OUT=/tmp/ts-plausibility \
   go test -run TestPlausibilityAdjudicationExperiment -v ./internal/adjudicate
+
+# granularity and speed measurement
+TYPESAFE_EXPERIMENT=1 go test -run TestPlausibilityBatchingExperiment -v ./internal/adjudicate
 ```
 
 **Dataset.** 79 entries (`internal/adjudicate/testdata/plausibility_corpus.json`).
@@ -459,12 +462,23 @@ identical runs, both at 0.49–0.50. At t=0.7 six flipped, all between 0.63 and
 0.75. Answers vary more than the identity experiment's (which returned
 identical picks on all readings), so a runtime use must cache like any other.
 
-**Batching** fails for the third time: all 79 entries in one request agrees
-with the per-entry requests on only 44/79 name and 67/79 address decisions.
+**Granularity and speed** (`TestPlausibilityBatchingExperiment`). Merging
+entries into one state changes answers: already two entries per request
+disagree with the per-entry decisions at t=0.7 on 9/79 name and 4/79 address
+fields, with a mean |Δ| of 0.058 and a maximum of 0.61 — far beyond run-to-run
+noise. At t=0.7, all 79 entries in one request agrees on only 47/79 name and
+46/79 address decisions and turns the 3/21 clean false alarms into 14/21, so
+the unit of a request stays **one entry**. Concurrency is free, though: the
+same 79
+per-entry requests at 4 and 8 workers run 4.1x and 8.2x faster (6.2 s and 3.1 s
+against 25.8 s) with mean |Δ| 0.014/0.012 — the same magnitude as two
+sequential runs. The plausibility harness now issues 8 concurrent requests by
+default (`TYPESAFE_EXPERIMENT_WORKERS` overrides), which took the whole §4.2
+run from 56 s to 8 s.
 
-**Cost.** 79 requests, 50.3k in / 3.6k out tokens, 28 s wall. Unmatched
-entries are rare — none in the three corpus weeks — so runtime volume is
-negligible.
+**Cost.** 79 requests, 50.3k in / 3.6k out tokens, ~4 s wall at 8 concurrent
+requests (26 s one at a time). Unmatched entries are rare — none in the three
+corpus weeks — so runtime volume is negligible.
 
 **Reading of the result.** Address plausibility is ready for a warning-only
 runtime use at the measured 0.7 gate. Name plausibility repairs the fixed
@@ -569,6 +583,10 @@ call, and change no JSON schema (warnings are additive).
   document titles as plausible names; re-word or re-measure before relying on it
   for that class. Its answers vary between runs more than the identity
   experiment's — six of 158 field decisions flipped at t=0.7 — so cache them.
+- Merging several §4.2 entries into one request changes answers beyond
+  run-to-run noise (two entries per request: mean |Δ| 0.058, flips up to 0.61);
+  independent per-entry requests must stay separate — only concurrency or
+  caching may speed them up, and concurrent decisions still need the cache.
 - The provider is a third party. Even where the data is public, sending it there
   is a decision for the project owner, not a side effect of this document.
 
