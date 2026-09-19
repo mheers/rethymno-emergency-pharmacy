@@ -235,6 +235,10 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
 - [VISION_EVALUATION.md](VISION_EVALUATION.md) — why the validated OCR
   pipeline stays: the September 2026 comparison against a vision LLM and the
   decision to keep the deterministic implementation.
+- [TYPESAFE_EVALUATION.md](TYPESAFE_EVALUATION.md) — where System One judgments
+  can replace fragile parsing heuristics (catalog identity adjudication, line
+  classification, golden-catalog merge), the measured golden-merge adjudicator
+  now used by `merge-golden`, and the guardrails it runs behind.
 - `rethymno-emergency-pharmacy inspect <image>` — geometry, columns and raw OCR diagnostics
   for a single image.
 
@@ -244,9 +248,10 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
 - Structured duty page (cross-check): [rethymno.gr](https://www.rethymno.gr/information-services/pharmacies/pharmacies.html)
 - Pharmacy catalog (validation dictionary): [rethymno.gr](https://www.rethymno.gr/guide/pharmacies)
 - Google Places enrichment: merged once into the reference catalog with
-  `go run ./cmd/merge-golden -golden <path-to-catalog/pharmacies.json>`
+  `go run ./cmd/merge-golden -judge-strict -golden <path-to-catalog/pharmacies.json>`
   (the golden catalog is produced by the expat-map-guide enrichment workflow
-  and is not part of this repository).
+  and is not part of this repository). Adjudication is on by default; strict
+  mode refuses to write while curator decisions or fallbacks are unresolved.
 
 ## License
 
