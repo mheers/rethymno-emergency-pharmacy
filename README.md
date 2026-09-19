@@ -5,7 +5,8 @@ schedule** — published as a JPEG image on [fskriti.gr](https://fskriti.gr/εφ
 into validated, deterministic JSON. Written in Go, no database, no cloud by
 default: the CLI, the library behind it, and an optional internal HTTP API are
 the whole surface. An opt-in TypeSafe System One adjudicator can resolve
-ambiguous catalog matches — off unless asked for, and never able to write a
+ambiguous catalog matches and flag implausible entries the catalog does not
+contain — off unless asked for, warnings only, and never able to write a
 pharmacy the catalog does not contain (see `--judge` below).
 
 ```
@@ -107,14 +108,15 @@ Flags:
   --iterations <n>  benchmark repetitions (default 1)
   --listen <addr>   serve: HTTP listen address (default 127.0.0.1:8080)
   --cache-ttl <d>   serve: cache TTL for parsed schedules (default 24h)
-  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches with
-                    TypeSafe System One (sends OCR text to api.typesafe.ai;
-                    requires TYPESAFE_API_KEY; decisions are cached)
+  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches and
+                    flag implausible unmatched entries with TypeSafe System One
+                    (sends OCR text to api.typesafe.ai; requires
+                    TYPESAFE_API_KEY; decisions are cached)
   --judge-model     pinned System One model (default jev-1.13.0)
-  --judge-cache     identity decision cache file (default: user cache dir)
+  --judge-cache     judge decision cache file (default: user cache dir)
 ```
 
-### Optional: catalog-identity adjudication
+### Optional: TypeSafe System One adjudication
 
 When a phone number matches several catalog entries (four numbers in the
 Rethymno catalog are two pharmacies on one line), the similarity matcher
@@ -131,6 +133,17 @@ adds a warning. Every decision is recorded in `--judge-cache` and reused, so
 output stays deterministic; deleting the cache file (or one entry) forces
 re-evaluation. In containers without `$HOME`, pass `--judge-cache` explicitly
 (ideally into a mounted volume) so the decisions persist and stay reviewable.
+
+The same flag also verifies entries the catalog cannot rescue — their phone
+number matches nothing. One Noul per field asks "is this a plausible Greek
+pharmacy name?" and "is this a plausible street address in or near Rethymno?";
+`pipeline.VerifyPlausibility` turns probabilities below the measured gates
+(address 0.7, name 0.5, TYPESAFE_EVALUATION.md §4.2) into additive warnings.
+The judgment only reports: no name, address or score is ever rewritten, and
+both judges share the one `--judge-cache`. With
+`ClientConfig.PlausibilityJudge` the verifier can be enabled independently of
+identity adjudication.
+
 This is the one code path that leaves the machine: it is
 opt-in, default off, and sends only OCR text of public pharmacy data.
 
@@ -268,8 +281,8 @@ scripts/bootstrap.sh  pinned, SHA-verified model/ORT downloads
   classification, golden-catalog merge, plausibility verification), the measured
   golden-merge adjudicator now used by `merge-golden`, the measured
   catalog-identity adjudicator wired into the runtime behind `--judge`, the
-  measured plausibility verifier for unmatched entries (warnings-only, not yet
-  wired), and the guardrails they run behind.
+  measured plausibility verifier for unmatched entries (warnings-only, wired
+  behind the same flag), and the guardrails they run behind.
 - `rethymno-emergency-pharmacy inspect <image>` — geometry, columns and raw OCR diagnostics
   for a single image.
 

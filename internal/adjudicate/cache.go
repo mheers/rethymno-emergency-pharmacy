@@ -37,7 +37,9 @@ type DecisionCache struct {
 
 // cacheEntry is one recorded decision. ChoiceIndex is the candidate's position
 // in the request (-1 for IdentityNone), so the record does not depend on a
-// caller's candidate ID scheme.
+// caller's candidate ID scheme. The plausibility fields are nil for identity
+// decisions and vice versa; identity and plausibility decisions share the file
+// under namespaced keys.
 type cacheEntry struct {
 	ChoiceIndex   int                `json:"choice_index"`
 	Confidence    float64            `json:"confidence"`
@@ -45,6 +47,9 @@ type cacheEntry struct {
 	Probabilities map[string]float64 `json:"probabilities,omitempty"`
 	Model         string             `json:"model,omitempty"`
 	DecidedAt     string             `json:"decided_at,omitempty"`
+
+	NamePlausible    *float64 `json:"name_plausible,omitempty"`
+	AddressPlausible *float64 `json:"address_plausible,omitempty"`
 }
 
 type cacheFile struct {

@@ -95,6 +95,13 @@ type ClientConfig struct {
 	// opt-in and breaks the otherwise local, CPU-only default. Nil keeps the
 	// deterministic similarity pick. TYPESAFE_API_KEY must be set.
 	IdentityJudge *IdentityJudgeConfig
+	// PlausibilityJudge enables TypeSafe System One plausibility verification
+	// for entries the catalog cannot rescue (their phone number matches no
+	// catalog entry): one Noul per field, consumed as additive warnings only
+	// (TYPESAFE_EVALUATION.md §3D). It sends the same class of OCR text and is
+	// just as opt-in as IdentityJudge. Nil disables it and keeps the
+	// deterministic path.
+	PlausibilityJudge *PlausibilityJudgeConfig
 	// Log receives pipeline diagnostics (default stderr logger).
 	Log *log.Logger
 }
@@ -118,15 +125,43 @@ type IdentityJudgeConfig struct {
 	MinSamePharmacy float64
 }
 
-const defaultIdentityGate = 0.8
+// PlausibilityJudgeConfig configures runtime plausibility verification
+// (TYPESAFE_EVALUATION.md §3D). Every decision is recorded in CachePath and
+// reused, so repeated parses produce identical warnings; the gates are the
+// measured ones (address 0.7, name 0.5) and each flag is a warning, never a
+// rewrite.
+type PlausibilityJudgeConfig struct {
+	// Model is the pinned System One model. Empty selects
+	// adjudicate.DefaultJudgeModel.
+	Model string
+	// CachePath is the decision cache file. Required: persistence is what
+	// keeps the JSON deterministic across runs. It may be the same path as
+	// IdentityJudge.CachePath; the two judges then share one file and one
+	// in-memory cache.
+	CachePath string
+	// MinName gates the name-plausibility Noul; zero selects the measured
+	// default (0.5).
+	MinName float64
+	// MinAddress gates the address-plausibility Noul; zero selects the
+	// measured default (0.7).
+	MinAddress float64
+}
+
+const (
+	defaultIdentityGate            = 0.8
+	defaultPlausibilityNameGate    = 0.5
+	defaultPlausibilityAddressGate = 0.7
+)
 
 // Client runs the OCR pipeline.
 type Client struct {
-	cfg      ClientConfig
-	pipe     *pipeline.Pipeline
-	backend  pipeline.OCRBackend
-	judge    pipeline.IdentityJudge
-	judgeCfg adjudicate.IdentityConfig
+	cfg        ClientConfig
+	pipe       *pipeline.Pipeline
+	backend    pipeline.OCRBackend
+	judge      pipeline.IdentityJudge
+	judgeCfg   adjudicate.IdentityConfig
+	plausJudge pipeline.PlausibilityJudge
+	plausCfg   adjudicate.PlausibilityConfig
 }
 
 // New creates a Client and initializes the vision processor and the OCR
@@ -153,9 +188,14 @@ func New(cfg ClientConfig) (*Client, error) {
 		ocr.SetEmbeddedModels(embeddedDetModel, rec)
 	}
 
-	// The identity judge is configured before the OCR backend so that a
+	// The judges are configured before the OCR backend so that a
 	// configuration error cannot leave a worker process behind.
-	judge, judgeCfg, err := buildIdentityJudge(cfg.IdentityJudge)
+	caches := &judgeCaches{byPath: map[string]*adjudicate.DecisionCache{}}
+	judge, judgeCfg, err := buildIdentityJudge(cfg.IdentityJudge, caches.open)
+	if err != nil {
+		return nil, err
+	}
+	plausJudge, plausCfg, err := buildPlausibilityJudge(cfg.PlausibilityJudge, caches.open)
 	if err != nil {
 		return nil, err
 	}
@@ -195,17 +235,39 @@ func New(cfg ClientConfig) (*Client, error) {
 	}
 
 	return &Client{
-		cfg:      cfg,
-		pipe:     pipeline.New(v, backend, cfg.Log),
-		backend:  backend,
-		judge:    judge,
-		judgeCfg: judgeCfg,
+		cfg:        cfg,
+		pipe:       pipeline.New(v, backend, cfg.Log),
+		backend:    backend,
+		judge:      judge,
+		judgeCfg:   judgeCfg,
+		plausJudge: plausJudge,
+		plausCfg:   plausCfg,
 	}, nil
+}
+
+// judgeCaches hands out one DecisionCache per path. Identity and plausibility
+// decisions share a cache file when configured with the same path, and sharing
+// the in-memory instance is what keeps each judge from overwriting the other's
+// decisions when it saves.
+type judgeCaches struct {
+	byPath map[string]*adjudicate.DecisionCache
+}
+
+func (c *judgeCaches) open(path string) (*adjudicate.DecisionCache, error) {
+	if cache, ok := c.byPath[path]; ok {
+		return cache, nil
+	}
+	cache, err := adjudicate.OpenDecisionCache(path)
+	if err != nil {
+		return nil, err
+	}
+	c.byPath[path] = cache
+	return cache, nil
 }
 
 // buildIdentityJudge wires the optional runtime adjudicator. Any
 // configuration error is returned before the OCR backend is created.
-func buildIdentityJudge(cfg *IdentityJudgeConfig) (pipeline.IdentityJudge, adjudicate.IdentityConfig, error) {
+func buildIdentityJudge(cfg *IdentityJudgeConfig, openCache func(string) (*adjudicate.DecisionCache, error)) (pipeline.IdentityJudge, adjudicate.IdentityConfig, error) {
 	if cfg == nil {
 		return nil, adjudicate.IdentityConfig{}, nil
 	}
@@ -222,7 +284,7 @@ func buildIdentityJudge(cfg *IdentityJudgeConfig) (pipeline.IdentityJudge, adjud
 	}
 	client := adjudicate.NewClient(key)
 	client.Model = model
-	cache, err := adjudicate.OpenDecisionCache(cfg.CachePath)
+	cache, err := openCache(cfg.CachePath)
 	if err != nil {
 		return nil, adjudicate.IdentityConfig{}, fmt.Errorf("rethymnoemergency: identity decision cache: %w", err)
 	}
@@ -236,6 +298,42 @@ func buildIdentityJudge(cfg *IdentityJudgeConfig) (pipeline.IdentityJudge, adjud
 	return adjudicate.NewCachedJudge(client, cache), adjudicate.IdentityConfig{
 		MinConfidence:   minConf,
 		MinSamePharmacy: minSame,
+	}, nil
+}
+
+// buildPlausibilityJudge wires the optional runtime plausibility verifier.
+// Any configuration error is returned before the OCR backend is created.
+func buildPlausibilityJudge(cfg *PlausibilityJudgeConfig, openCache func(string) (*adjudicate.DecisionCache, error)) (pipeline.PlausibilityJudge, adjudicate.PlausibilityConfig, error) {
+	if cfg == nil {
+		return nil, adjudicate.PlausibilityConfig{}, nil
+	}
+	if strings.TrimSpace(cfg.CachePath) == "" {
+		return nil, adjudicate.PlausibilityConfig{}, errors.New("rethymnoemergency: PlausibilityJudge.CachePath is required: decisions must be recorded to keep the JSON deterministic")
+	}
+	key := os.Getenv(adjudicate.APIKeyEnv)
+	if key == "" {
+		return nil, adjudicate.PlausibilityConfig{}, fmt.Errorf("rethymnoemergency: plausibility verification needs %s", adjudicate.APIKeyEnv)
+	}
+	model := cfg.Model
+	if model == "" {
+		model = adjudicate.DefaultJudgeModel
+	}
+	client := adjudicate.NewClient(key)
+	client.Model = model
+	cache, err := openCache(cfg.CachePath)
+	if err != nil {
+		return nil, adjudicate.PlausibilityConfig{}, fmt.Errorf("rethymnoemergency: plausibility decision cache: %w", err)
+	}
+	minName, minAddress := cfg.MinName, cfg.MinAddress
+	if minName == 0 {
+		minName = defaultPlausibilityNameGate
+	}
+	if minAddress == 0 {
+		minAddress = defaultPlausibilityAddressGate
+	}
+	return adjudicate.NewCachedPlausibilityJudge(client, cache), adjudicate.PlausibilityConfig{
+		MinName:    minName,
+		MinAddress: minAddress,
 	}, nil
 }
 
@@ -266,6 +364,7 @@ func (c *Client) Parse(ctx context.Context, data []byte, opts Options) (*Result,
 		warnings = append(fill.Warnings, warnings...)
 	}
 	res.Warnings = warnings
+	res.Warnings = append(res.Warnings, pipeline.VerifyPlausibility(ctx, &res.Schedule, references, c.plausJudge, c.plausCfg)...)
 	pipeline.ApplyValidation(&res.Schedule, vals)
 	return res, nil
 }

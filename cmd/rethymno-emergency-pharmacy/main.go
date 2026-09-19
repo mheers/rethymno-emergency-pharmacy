@@ -92,17 +92,20 @@ Flags:
   --iterations <n>  benchmark repetitions (default 1)
   --listen <addr>   serve: HTTP listen address (default 127.0.0.1:8080)
   --cache-ttl <d>   serve: cache TTL for parsed schedules (default 24h)
-  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches with
-                    TypeSafe System One (sends OCR text to api.typesafe.ai;
-                    requires TYPESAFE_API_KEY; decisions are cached)
+  --judge           ingest/parse/serve: adjudicate ambiguous catalog matches and
+                    flag implausible unmatched entries with TypeSafe System One
+                    (sends OCR text to api.typesafe.ai; requires
+                    TYPESAFE_API_KEY; decisions are cached)
   --judge-model     pinned System One model (default jev-1.13.0)
-  --judge-cache     identity decision cache file (default: user cache dir)
+  --judge-cache     judge decision cache file (default: user cache dir)
 `)
 }
 
-// judgeFlags groups the identity-adjudication flags shared by ingest, parse
+// judgeFlags groups the TypeSafe adjudication flags shared by ingest, parse
 // and serve. Judging is opt-in and default off: it sends OCR text (public
 // pharmacy data) to api.typesafe.ai, unlike the local, CPU-only pipeline.
+// --judge enables both the identity adjudicator and the warnings-only
+// plausibility verifier.
 type judgeFlags struct {
 	enable *bool
 	model  *string
@@ -111,17 +114,29 @@ type judgeFlags struct {
 
 func addJudgeFlags(fs *flag.FlagSet) *judgeFlags {
 	return &judgeFlags{
-		enable: fs.Bool("judge", false, "adjudicate ambiguous catalog matches with TypeSafe System One"),
+		enable: fs.Bool("judge", false, "adjudicate catalog entries and verify unmatched entries with TypeSafe System One"),
 		model:  fs.String("judge-model", adjudicate.DefaultJudgeModel, "pinned System One model"),
-		cache:  fs.String("judge-cache", defaultJudgeCachePath(), "identity decision cache file"),
+		cache:  fs.String("judge-cache", defaultJudgeCachePath(), "judge decision cache file"),
 	}
 }
 
-func (j *judgeFlags) config() *rethymnoemergency.IdentityJudgeConfig {
+func (j *judgeFlags) identityConfig() *rethymnoemergency.IdentityJudgeConfig {
 	if j == nil || !*j.enable {
 		return nil
 	}
 	return &rethymnoemergency.IdentityJudgeConfig{
+		Model:     *j.model,
+		CachePath: *j.cache,
+	}
+}
+
+// plausibilityConfig shares --judge-model and --judge-cache with the identity
+// judge, so both record into one reviewable decision file.
+func (j *judgeFlags) plausibilityConfig() *rethymnoemergency.PlausibilityJudgeConfig {
+	if j == nil || !*j.enable {
+		return nil
+	}
+	return &rethymnoemergency.PlausibilityJudgeConfig{
 		Model:     *j.model,
 		CachePath: *j.cache,
 	}
@@ -172,10 +187,11 @@ func cmdParse(ctx context.Context, args []string) error {
 		return fmt.Errorf("usage: rethymno-emergency-pharmacy parse <image> [flags]")
 	}
 	client, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath:     *modelsDir,
-		RecModel:      *recModel,
-		IdentityJudge: judge.config(),
-		Log:           log.Default(),
+		ModelPath:         *modelsDir,
+		RecModel:          *recModel,
+		IdentityJudge:     judge.identityConfig(),
+		PlausibilityJudge: judge.plausibilityConfig(),
+		Log:               log.Default(),
 	})
 	if err != nil {
 		return err
@@ -291,9 +307,10 @@ func cmdIngest(ctx context.Context, args []string) error {
 	fmt.Fprintf(os.Stderr, "downloading %s ...\n", cur.URL)
 
 	ocrClient, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath:     *modelsDir,
-		IdentityJudge: judge.config(),
-		Log:           log.Default(),
+		ModelPath:         *modelsDir,
+		IdentityJudge:     judge.identityConfig(),
+		PlausibilityJudge: judge.plausibilityConfig(),
+		Log:               log.Default(),
 	})
 	if err != nil {
 		return err
@@ -414,10 +431,11 @@ func cmdServe(ctx context.Context, args []string) error {
 	}
 
 	client, err := rethymnoemergency.New(rethymnoemergency.ClientConfig{
-		ModelPath:     *modelsDir,
-		RecModel:      *recModel,
-		IdentityJudge: judge.config(),
-		Log:           log.Default(),
+		ModelPath:         *modelsDir,
+		RecModel:          *recModel,
+		IdentityJudge:     judge.identityConfig(),
+		PlausibilityJudge: judge.plausibilityConfig(),
+		Log:               log.Default(),
 	})
 	if err != nil {
 		return err

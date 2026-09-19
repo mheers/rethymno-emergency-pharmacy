@@ -12,9 +12,9 @@ prototypes are implemented: `internal/adjudicate` behind `cmd/merge-golden`
 (adjudication on by default, `-judge=false` forces the deterministic path; §4
 measures it), the catalog-identity adjudicator, measured in §4.1 and wired into
 the runtime behind the opt-in `--judge` flag, and the plausibility verifier,
-measured in §4.2 (warnings-only, not wired). The runtime pipeline is otherwise
-unchanged, and this document records the evaluation so the work does not have
-to be re-derived.
+measured in §4.2 and wired warnings-only behind the same flag. The runtime
+pipeline is otherwise unchanged, and this document records the evaluation so
+the work does not have to be re-derived.
 
 - **Date:** 2026-09-19
 - **Model:** `jev-1.13.0` pinned for the measurements
@@ -200,11 +200,11 @@ warnings and, optionally in a later phase, as an extra dimension in the
 confidence formula. The fixed weights remain code's business in the first phase.
 The judgment reports; code decides; nothing is rewritten.
 
-**Measured in §4.2.** `internal/adjudicate/plausibility.go`
-(`AdjudicatePlausibility`). The address question has an empty band (0.68, 0.72]
-and supports a 0.7 warning gate; the name question repairs the fixed rules'
-false alarms and surfaces misrouted lines, but name-less garbage that reads
-like a name can slip through. Not wired into the runtime.
+**Measured in §4.2 and wired.** `internal/adjudicate/plausibility.go`
+(`AdjudicatePlausibility`) and `adjudicate.CachedPlausibilityJudge`; the
+runtime verifier is `pipeline.VerifyPlausibility`, opt-in behind `--judge` /
+`ClientConfig.PlausibilityJudge` with the measured gates (address 0.7, name
+0.5) and the shared decision cache. Warnings only: nothing is rewritten.
 
 ### E. Week and page gates (runtime, opt-in)
 
@@ -305,8 +305,8 @@ corpus before the runtime use in A is trusted.
 Opportunity A is prototyped as a rerank: `internal/adjudicate/identity.go` builds
 one Choice per entry (the code-supplied candidates plus an explicit `none`) and
 one same-pharmacy Noul per candidate, and `AcceptIdentity` applies the
-confidence and Noul gates. It is not wired into the runtime pipeline; the
-experiment measures it first.
+confidence and Noul gates. The experiment measured it before it was wired into
+the runtime pipeline (it was wired the same day; see the wiring note below).
 
 ```sh
 TYPESAFE_EXPERIMENT=1 TYPESAFE_EXPERIMENT_OUT=/tmp/ts-identity \
@@ -386,8 +386,8 @@ name mismatch against the judged entry.
 Opportunity D is implemented as two Nouls per entry
 (`internal/adjudicate/plausibility.go`): "Is this a plausible Greek pharmacy
 name?" and "Is this a plausible street address in or near Rethymno?". The
-experiment measures where the probabilities separate; the judgment is not wired
-into the runtime.
+experiment measures where the probabilities separate; the judgment is wired
+warnings-only behind `--judge` (§7).
 
 ```sh
 TYPESAFE_EXPERIMENT=1 TYPESAFE_EXPERIMENT_OUT=/tmp/ts-plausibility \
@@ -480,13 +480,12 @@ run from 56 s to 8 s.
 requests (26 s one at a time). Unmatched entries are rare — none in the three
 corpus weeks — so runtime volume is negligible.
 
-**Reading of the result.** Address plausibility is ready for a warning-only
-runtime use at the measured 0.7 gate. Name plausibility repairs the fixed
-rules' false alarms and surfaces extra lines routed into the name, but it does
-not reliably reject name-less garbage that reads like a name; if wired, it
-should warn at 0.5 (no false alarms, partial detection) or 0.7 (more detection,
-5/30 clean names flagged). Either way it only adds warnings — the field is
-never rewritten and the confidence formula stays untouched.
+**Reading of the result.** Address plausibility supports a warning-only runtime
+gate at the measured 0.7; name plausibility repairs the fixed rules' false
+alarms and surfaces extra lines routed into the name, but does not reliably
+reject name-less garbage that reads like a name, so it warns conservatively at
+0.5. Either way it only adds warnings — the field is never rewritten and the
+confidence formula stays untouched (wired in §7).
 
 ## 5. Guardrails: what stays in code
 
@@ -499,8 +498,9 @@ never rewritten and the confidence formula stays untouched.
 - Low confidence produces a **warning or fallback**, never a silent overwrite.
   Implemented: `internal/pipeline/identity.go` falls back to the similarity
   pick and records a warning for every non-accepted verdict.
-- Plausibility verification is measured but **not wired** (§4.2); when wired it
-  adds warnings only and never touches the confidence formula.
+- Plausibility verification is **warnings only**: no field and no score is ever
+  rewritten, and the confidence formula stays in code. Implemented:
+  `internal/pipeline/plausibility.go` (`VerifyPlausibility`).
 - Answers to unused speculative questions are ignored; thresholds are evaluated
   on the corpus, not copied from cookbook examples.
 - A pinned model version and a decision cache keyed by input hash are
@@ -515,9 +515,9 @@ never rewritten and the confidence formula stays untouched.
   results (C, B build-time mode); (b) runtime calls behind an opt-in flag with
   the current deterministic path as fallback; (c) cached runtime decisions with
   golden tests pinning the outputs. Never blend an uncached model decision
-  silently into the output. The identity adjudicator takes (b) with a required
-  cache (c): `--judge` is opt-in and every decision is persisted before it can
-  enter the output.
+  silently into the output. The identity adjudicator and the plausibility
+  verifier take (b) with a required cache (c): `--judge` is opt-in and every
+  decision is persisted before it can enter the output.
 - **Offline / no cloud.** Runtime judgment sends OCR text (public pharmacy data)
   to a third party. That is a data-policy decision, not just a technical one —
   make it opt-in (environment/flag), default off, and document it next to the
@@ -548,10 +548,11 @@ never rewritten and the confidence formula stays untouched.
    `pipeline.FillFromCatalogJudged`, `ValidateResultWithPicks` and
    `ClientConfig.IdentityJudge` (`--judge`), with the measured 0.8 gates and a
    required decision cache; the similarity pick stays the fallback.
-3. **D — plausibility verification.** Measured (§4.2). Wire it as opt-in
-   warnings for unmatched entries: address at the measured 0.7 gate, name
-   conservatively at 0.5; cached like every runtime judgment. The default path
-   stays untouched, and the judgment never rewrites a field or the score.
+3. **D — plausibility verification.** Measured (§4.2) and **done:**
+   warnings-only verification for unmatched entries behind `--judge` /
+   `ClientConfig.PlausibilityJudge`, address at the measured 0.7 gate and name
+   at 0.5, with the shared decision cache. `pipeline.VerifyPlausibility`
+   reports; the field and the confidence formula are untouched.
 4. **B / E** only after measuring on the corpus, keeping the default path
    untouched.
 

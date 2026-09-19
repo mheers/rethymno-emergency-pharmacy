@@ -48,13 +48,14 @@ These apply to every surface; they are the result of hard-won debugging
 5. **JSON output is deterministic** for equal inputs (struct field order,
    sorted map keys) and carries `image_sha256` — you can cache, diff, and
    ETag it.
-6. **Catalog-identity adjudication is opt-in and off by default.** When
-   enabled (`--judge`, or `ClientConfig.IdentityJudge`), OCR text for the few
-   phone numbers that match several catalog entries is sent to
-   `api.typesafe.ai` and each decision is recorded in a cache file;
-   determinism is preserved because later runs reuse the recorded decision.
-   `TYPESAFE_API_KEY` is required. Without it the pipeline stays local and
-   CPU-only.
+6. **TypeSafe adjudication is opt-in and off by default.** When enabled
+   (`--judge`, or `ClientConfig.IdentityJudge` / `ClientConfig.PlausibilityJudge`),
+   OCR text is sent to `api.typesafe.ai` for the phone numbers that match
+   several catalog entries (identity selection) and for entries whose phone
+   matches no catalog entry (warnings-only plausibility verification); each
+   decision is recorded in a cache file, and determinism is preserved because
+   later runs reuse the recorded decision. `TYPESAFE_API_KEY` is required.
+   Without it the pipeline stays local and CPU-only.
 
 ---
 
@@ -122,6 +123,7 @@ func main() {
 | `NumThreads` | engine default | ONNX inference threads |
 | `HTTPTimeout` | 30s | bounds `ParseURL` downloads |
 | `IdentityJudge` | `nil` (off) | opt-in TypeSafe System One adjudication for phones matching several catalog entries; requires `CachePath` and `TYPESAFE_API_KEY`, sends OCR text to `api.typesafe.ai` |
+| `PlausibilityJudge` | `nil` (off) | opt-in warnings-only TypeSafe System One verification for entries whose phone matches no catalog entry; same requirements, may share `IdentityJudge.CachePath` |
 | `Log` | stderr logger | pipeline diagnostics |
 
 ### 1.4 Client methods
@@ -264,8 +266,8 @@ exec /usr/local/bin/rethymno-emergency-pharmacy ingest \
 
 Note: `ingest` is the only subcommand that touches the network by default
 (fskriti.gr); `parse` is fully offline. With `--judge`, `ingest`, `parse` and
-`serve` additionally call `api.typesafe.ai` for ambiguous catalog matches —
-see §0.6.
+`serve` additionally call `api.typesafe.ai` for ambiguous catalog matches and
+for plausibility warnings on unmatched entries — see §0.6.
 
 ---
 
@@ -378,8 +380,9 @@ loopback / an internal network only.
 rethymno-emergency-pharmacy serve --listen 127.0.0.1:8080 --cache-ttl 24h
 ```
 
-With `--judge`, ambiguous catalog matches are adjudicated once and recorded in
-`--judge-cache` (§0.6); the response JSON gains additive warnings only.
+With `--judge`, ambiguous catalog matches are adjudicated once and unmatched
+entries are plausibility-checked, both recorded in `--judge-cache` (§0.6); the
+response JSON gains additive warnings only.
 
 | Route | Behavior |
 |---|---|
